@@ -1,0 +1,420 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Konteo 05 — Tu app personal de finanzas">
+    <meta name="theme-color" content="#6d5bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Konteo 05">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+        script-src 'self' https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src https://fonts.gstatic.com;
+        connect-src https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.firebasestorage.app;
+        img-src 'self' data:;">
+
+    <title>Konteo 05 — Mis Finanzas</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <div id="toast-container"></div>
+
+    <div id="app">
+        <!-- Login -->
+        <div id="login-page" class="page">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-logo">
+                        <span class="logo-icon">💰</span>
+                        <h1>Konteo 05</h1>
+                        <p class="subtitle">Mis Finanzas Personales</p>
+                    </div>
+                    <form id="login-form">
+                        <input type="email" id="email" placeholder="Correo electrónico" required>
+                        <input type="password" id="password" placeholder="Contraseña" required>
+                        <button type="submit">Iniciar Sesión</button>
+                    </form>
+                    <p class="auth-switch"><a href="#" id="forgot-password-link">Olvidé mi contraseña</a></p>
+                    <p class="auth-switch">¿No tienes cuenta? <a href="#" id="show-register">Crear cuenta</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register -->
+        <div id="register-page" class="page hidden">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-logo">
+                        <span class="logo-icon">🚀</span>
+                        <h1>Konteo 05</h1>
+                        <p class="subtitle">Crea tu cuenta</p>
+                    </div>
+                    <form id="register-form">
+                        <input type="text" id="reg-name" placeholder="Tu nombre" required>
+                        <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+                        <input type="tel" id="reg-phone" placeholder="Telefono (opcional)" maxlength="20">
+                        <input type="date" id="reg-birthday" placeholder="Cumpleaños (opcional)">
+                        <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)"
+                            minlength="6" required>
+                        <button type="submit">Crear Cuenta</button>
+                    </form>
+                    <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="show-login">Iniciar sesión</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard-page" class="page hidden">
+            <header>
+                <div class="header-brand">
+                    <span class="brand-icon">💰</span>
+                    <h2>Konteo 05</h2>
+                </div>
+                <div class="header-actions">
+                    <span id="user-name"></span>
+                    <button id="theme-toggle-btn" class="btn-theme" aria-label="Cambiar tema">🌙</button>
+                    <button id="profile-btn">Mi perfil</button>
+                    <button id="logout-btn">Salir</button>
+                </div>
+            </header>
+
+            <main class="dashboard-animate">
+                <section class="controls-panel">
+                    <!-- Search & Category Filter -->
+                    <div class="search-section">
+                        <input type="text" id="search-input" placeholder="🔍 Buscar por nota..." class="search-input"
+                            aria-label="Buscar transacciones">
+                        <select id="category-filter" class="category-filter" aria-label="Filtrar por categoría">
+                            <option value="all">Todas las categorías</option>
+                            <option value="income">Ingresos</option>
+                            <option value="green">Fijo</option>
+                            <option value="yellow">Necesario</option>
+                            <option value="red">Antojo</option>
+                        </select>
+                    </div>
+
+                    <div class="filters">
+                        <p class="filters-title">Periodo</p>
+                        <div class="filters-grid" role="tablist" aria-label="Seleccionar periodo">
+                            <button class="filter active" data-filter="today" aria-pressed="true">Hoy</button>
+                            <button class="filter" data-filter="week" aria-pressed="false">Últimos 7 días</button>
+                            <button class="filter" data-filter="month" aria-pressed="false">Mes actual</button>
+                            <button class="filter" data-filter="custom" aria-pressed="false">Rango
+                                personalizado</button>
+                        </div>
+                    </div>
+
+                    <div class="sort-panel controls-sort">
+                        <label for="sort-select">Orden</label>
+                        <select id="sort-select" aria-label="Ordenar movimientos">
+                            <option value="date_desc">Más recientes</option>
+                            <option value="date_asc">Más antiguos</option>
+                            <option value="amount_desc">Mayor monto</option>
+                            <option value="amount_asc">Menor monto</option>
+                        </select>
+                    </div>
+                    <div id="custom-range-panel" class="custom-range-panel hidden">
+                        <label>
+                            Desde
+                            <input type="date" id="range-start" aria-label="Fecha inicio">
+                        </label>
+                        <label>
+                            Hasta
+                            <input type="date" id="range-end" aria-label="Fecha fin">
+                        </label>
+                        <button id="btn-apply-range" class="btn-secondary">Aplicar</button>
+                    </div>
+                </section>
+
+                <!-- Balance -->
+                <div class="balance-card">
+                    <p>Balance</p>
+                    <h2 id="balance" class="balance-positive" aria-label="Balance actual">S/ 0.00</h2>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats">
+                    <div class="stat green">
+                        <p>Ingresos</p>
+                        <h3 id="total-income">S/ 0.00</h3>
+                    </div>
+                    <div class="stat red">
+                        <p>Gastos</p>
+                        <h3 id="total-expenses">S/ 0.00</h3>
+                    </div>
+                </div>
+
+                <div class="insights-section">
+                    <div class="insight-card">
+                        <p>Tasa de ahorro</p>
+                        <h4 id="insight-savings-rate">0%</h4>
+                    </div>
+                    <div class="insight-card">
+                        <p>Runway estimado</p>
+                        <h4 id="insight-runway">0 días</h4>
+                    </div>
+                    <div class="insight-card">
+                        <p>Categoría dominante</p>
+                        <h4 id="insight-top-category">Sin datos</h4>
+                    </div>
+                    <div class="insight-card">
+                        <p>Burn diario</p>
+                        <h4 id="insight-daily-burn">S/ 0.00</h4>
+                    </div>
+                    <div class="insight-card">
+                        <p>Anomalías detectadas</p>
+                        <h4 id="insight-anomalies">0</h4>
+                    </div>
+                </div>
+
+                <section class="strategy-section">
+                    <div class="strategy-head">
+                        <h3>Plan Financiero</h3>
+                        <p id="strategy-status">Configura tus objetivos para obtener recomendaciones automatizadas.</p>
+                    </div>
+                    <div class="strategy-grid">
+                        <label>
+                            Ingreso objetivo (Mensual)
+                            <input type="number" id="plan-income-target" min="0" step="0.01" placeholder="S/ 0.00">
+                        </label>
+                        <label>
+                            Límite de gasto (Mensual)
+                            <input type="number" id="plan-expense-limit" min="0" step="0.01" placeholder="S/ 0.00">
+                        </label>
+                        <button id="btn-save-plan" class="btn-secondary">Guardar plan</button>
+                    </div>
+                    <div class="strategy-metrics">
+                        <div class="metric-item">
+                            <span>Proyección de cierre</span>
+                            <strong id="strategy-forecast">S/ 0.00</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Desviación vs objetivo</span>
+                            <strong id="strategy-variance">S/ 0.00</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Score de salud</span>
+                            <strong id="strategy-score">0/100</strong>
+                        </div>
+                        <div class="metric-item budget-progress-container"
+                            style="grid-column: 1 / -1; margin-top: 8px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 13px; font-weight: 600; color: #64748b;">Progreso del gasto
+                                    mensual</span>
+                                <span id="budget-status"
+                                    style="font-size: 13px; font-weight: 700; color: #0f766e;">-</span>
+                            </div>
+                            <div class="budget-progress">
+                                <div class="budget-progress-bar" id="budget-progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <button id="btn-income" class="btn-add green">+ Ingreso</button>
+                    <button id="btn-expense" class="btn-add red">- Gasto</button>
+                    <button id="btn-duplicate-expense" class="btn-add btn-neutral">Duplicar último gasto</button>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h4>📊 Ingresos vs Gastos</h4>
+                        <div class="chart-card-container"><canvas id="incomeExpenseChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>🍩 Gastos por Categoría</h4>
+                        <div class="chart-card-container"><canvas id="categoryChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Export -->
+                <div class="export-section">
+                    <h3>📥 Exportar Reportes</h3>
+                    <p class="export-subtitle">1) Elige periodo. 2) Descarga en el formato que prefieras.</p>
+                    <div class="export-period" role="tablist" aria-label="Periodo de exportación">
+                        <button id="export-period-week" class="export-period-btn active" data-period="semanal"
+                            aria-pressed="true">Semana</button>
+                        <button id="export-period-month" class="export-period-btn" data-period="mensual"
+                            aria-pressed="false">Mes</button>
+                    </div>
+                    <div class="export-actions">
+                        <button id="btn-export-excel" class="btn-export">📊 Descargar Excel</button>
+                        <button id="btn-export-pdf" class="btn-export">📄 Descargar PDF</button>
+                    </div>
+                </div>
+
+                <!-- Transactions List -->
+                <div class="transactions">
+                    <h3>Movimientos</h3>
+                    <div id="list"></div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="app-footer">
+                    <p>
+                        <a href="/privacy.html">Privacidad</a> · <a href="/terms.html">Términos</a>
+                    </p>
+                    <p class="footer-copy">Konteo 05 © 2026 — Hecho con 💜</p>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Ingreso -->
+    <div id="modal-income" class="modal hidden" role="dialog" aria-labelledby="modal-income-title" aria-modal="true">
+        <div class="modal-content">
+            <h3 id="modal-income-title">Nuevo Ingreso</h3>
+            <form id="form-income">
+                <input type="hidden" id="income-edit-id">
+                <div class="quick-amounts" data-target="income-amount">
+                    <button type="button" class="quick-amount" data-amount="50">+50</button>
+                    <button type="button" class="quick-amount" data-amount="100">+100</button>
+                    <button type="button" class="quick-amount" data-amount="500">+500</button>
+                    <button type="button" class="quick-amount" data-amount="1000">+1000</button>
+                </div>
+                <input type="number" id="income-amount" placeholder="Monto (S/)" step="0.01" min="0.01" required>
+                <input type="date" id="income-date" required>
+                <select id="income-source">
+                    <option value="salario">Salario</option>
+                    <option value="freelance">Freelance</option>
+                    <option value="negocio">Negocio</option>
+                    <option value="otros">Otros</option>
+                </select>
+                <select id="income-account">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="banco">Banco</option>
+                    <option value="billetera">Billetera digital</option>
+                </select>
+                <input type="text" id="income-tags" placeholder="Etiquetas (ej: enero, bono)" maxlength="100">
+                <input type="text" id="income-note" placeholder="Nota (opcional)" maxlength="100">
+                <div class="modal-buttons">
+                    <button type="button" class="cancel" data-modal="modal-income">Cancelar</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Gasto -->
+    <div id="modal-expense" class="modal hidden" role="dialog" aria-labelledby="modal-expense-title" aria-modal="true">
+        <div class="modal-content">
+            <h3 id="modal-expense-title">Nuevo Gasto</h3>
+            <form id="form-expense">
+                <input type="hidden" id="expense-edit-id">
+                <div class="quick-amounts" data-target="expense-amount">
+                    <button type="button" class="quick-amount" data-amount="20">+20</button>
+                    <button type="button" class="quick-amount" data-amount="50">+50</button>
+                    <button type="button" class="quick-amount" data-amount="100">+100</button>
+                    <button type="button" class="quick-amount" data-amount="200">+200</button>
+                </div>
+                <input type="number" id="expense-amount" placeholder="Monto (S/)" step="0.01" min="0.01" required>
+                <input type="date" id="expense-date" required>
+                <div class="category-buttons">
+                    <label>🟢 Fijo<input type="radio" name="category" value="green"></label>
+                    <label>🟡 Necesario<input type="radio" name="category" value="yellow"></label>
+                    <label>🔴 Antojo<input type="radio" name="category" value="red"></label>
+                </div>
+                <input type="text" id="expense-merchant" placeholder="Comercio o proveedor" maxlength="80">
+                <select id="expense-method">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="debito">Tarjeta debito</option>
+                    <option value="credito">Tarjeta credito</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="billetera">Billetera digital</option>
+                </select>
+                <select id="expense-priority">
+                    <option value="media">Prioridad media</option>
+                    <option value="alta">Prioridad alta</option>
+                    <option value="baja">Prioridad baja</option>
+                </select>
+                <input type="text" id="expense-note" placeholder="Nota (opcional)" maxlength="100">
+                <div class="modal-buttons">
+                    <button type="button" class="cancel" data-modal="modal-expense">Cancelar</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Perfil -->
+    <div id="modal-profile" class="modal hidden" role="dialog" aria-labelledby="modal-profile-title" aria-modal="true">
+        <div class="modal-content">
+            <h3 id="modal-profile-title">Perfil</h3>
+            <form id="form-profile">
+                <input type="text" id="profile-name" placeholder="Nombre completo" maxlength="60" required>
+                <input type="tel" id="profile-phone" placeholder="Telefono" maxlength="20">
+                <input type="date" id="profile-birthday" placeholder="Fecha de nacimiento">
+                <input type="text" id="profile-city" placeholder="Ciudad" maxlength="50">
+                <input type="text" id="profile-country" placeholder="Pais" maxlength="50">
+                <input type="text" id="profile-occupation" placeholder="Ocupacion" maxlength="60">
+                <select id="profile-currency">
+                    <option value="PEN">Sol (PEN)</option>
+                    <option value="USD">Dolar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                </select>
+                <input type="number" id="profile-monthly-target" placeholder="Objetivo de ahorro mensual" min="0"
+                    step="0.01">
+                <input type="email" id="profile-recovery-email" placeholder="Correo de recuperacion alterno"
+                    maxlength="120">
+                <input type="tel" id="profile-emergency-contact" placeholder="Contacto de emergencia" maxlength="20">
+                <textarea id="profile-bio" placeholder="Sobre mi (opcional)" maxlength="240"></textarea>
+                <p class="account-meta">Completitud del perfil: <strong id="profile-completion">0%</strong></p>
+                <div class="modal-buttons">
+                    <button type="button" id="btn-open-recovery" class="cancel">Recuperar contraseña</button>
+                    <button type="button" class="cancel" data-modal="modal-profile">Cancelar</button>
+                    <button type="submit">Guardar perfil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Recuperacion -->
+    <div id="modal-recovery" class="modal hidden" role="dialog" aria-labelledby="modal-recovery-title"
+        aria-modal="true">
+        <div class="modal-content">
+            <h3 id="modal-recovery-title">Recuperar contraseña</h3>
+            <form id="form-recovery">
+                <input type="email" id="recovery-email" placeholder="Correo de cuenta" required>
+                <input type="email" id="recovery-alt-email" placeholder="Correo alterno (opcional)">
+                <div class="modal-buttons">
+                    <button type="button" class="cancel" data-modal="modal-recovery">Cancelar</button>
+                    <button type="submit">Enviar enlace</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat) — loaded before module script -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase/runtime-config.js"></script>
+
+    <!-- Chart.js — used on every dashboard load -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+    <!-- SheetJS, jsPDF, html2canvas are now LAZY-LOADED only when export is triggered -->
+
+    <!-- App Module — single entry point -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

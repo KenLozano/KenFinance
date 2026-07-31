@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidAmount(value) {
+      return value is number && value > 0 && value <= 999999999;
+    }
+
+    function isValidDate(value) {
+      return value is timestamp && value <= request.time;
+    }
+
+    function isValidOptionalNote() {
+      return !("note" in request.resource.data) ||
+        (request.resource.data.note is string && request.resource.data.note.size() <= 100);
+    }
+
+    function isValidOptionalText(field, maxSize) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is string && request.resource.data[field].size() <= maxSize);
+    }
+
+    function hasRequiredIncomeFields() {
+      return request.resource.data.keys().hasAll(['amount', 'date']);
+    }
+
+    function hasRequiredExpenseFields() {
+      return request.resource.data.keys().hasAll(['amount', 'date', 'category']);
+    }
+
+    function hasOnlyAllowedBudgetFields() {
+      return request.resource.data.keys().hasOnly(['amount', 'updatedAt']);
+    }
+
+    function isValidPlanData() {
+      return request.resource.data.keys().hasOnly(['incomeTarget', 'expenseLimit', 'updatedAt']) &&
+        (!('incomeTarget' in request.resource.data) || (
+          request.resource.data.incomeTarget is number &&
+          request.resource.data.incomeTarget >= 0 &&
+          request.resource.data.incomeTarget <= 999999999
+        )) &&
+        (!('expenseLimit' in request.resource.data) || (
+          request.resource.data.expenseLimit is number &&
+          request.resource.data.expenseLimit >= 0 &&
+          request.resource.data.expenseLimit <= 999999999
+        ));
+    }
+
+    function isValidUserData() {
+      return isValidOptionalText('name', 60) &&
+        isValidOptionalText('phone', 20) &&
+        isValidOptionalText('birthday', 20) &&
+        isValidOptionalText('city', 50) &&
+        isValidOptionalText('country', 50) &&
+        isValidOptionalText('occupation', 60) &&
+        isValidOptionalText('currency', 10) &&
+        isValidOptionalText('bio', 240) &&
+        isValidOptionalText('recoveryEmail', 120) &&
+        isValidOptionalText('emergencyContact', 20) &&
+        (!('currency' in request.resource.data) || request.resource.data.currency in ['PEN', 'USD', 'EUR']) &&
+        (!('monthlyTarget' in request.resource.data) || (
+          request.resource.data.monthlyTarget is number &&
+          request.resource.data.monthlyTarget >= 0 &&
+          request.resource.data.monthlyTarget <= 999999999
+        ));
+    }
+
+    function isValidIncomeData() {
+      return hasRequiredIncomeFields() &&
+        isValidAmount(request.resource.data.amount) &&
+        isValidDate(request.resource.data.date) &&
+        isValidOptionalNote() &&
+        isValidOptionalText('source', 40) &&
+        isValidOptionalText('account', 40) &&
+        isValidOptionalText('tags', 100);
+    }
+
+    function isValidExpenseData() {
+      return hasRequiredExpenseFields() &&
+        isValidAmount(request.resource.data.amount) &&
+        isValidDate(request.resource.data.date) &&
+        request.resource.data.category in ['green', 'yellow', 'red'] &&
+        isValidOptionalNote() &&
+        isValidOptionalText('merchant', 80) &&
+        isValidOptionalText('method', 40) &&
+        isValidOptionalText('priority', 20) &&
+        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']);
+    }
+
+    function isValidBudgetData() {
+      return hasOnlyAllowedBudgetFields() &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount >= 0 &&
+        request.resource.data.amount <= 999999999;
+    }
+
+    match /users/{userId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserData();
+    }
+
+    match /transactions/{userId}/income/{docId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidIncomeData();
+    }
+
+    match /transactions/{userId}/expenses/{docId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidExpenseData();
+    }
+
+    match /transactions/{userId}/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /budgets/{userId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidBudgetData();
+    }
+
+    match /plans/{userId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidPlanData();
+    }
+  }
+}

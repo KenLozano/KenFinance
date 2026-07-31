@@ -1,0 +1,16 @@
+{
+    "name": "konteo-05",
+    "version": "4.0.0",
+    "description": "Konteo 05 — Tu app personal de finanzas",
+    "private": true,
+    "scripts": {
+        "dev": "npx -y serve .",
+        "lint": "npx -y eslint js/"
+    },
+    "keywords": [
+        "finanzas",
+        "pwa",
+        "firebase"
+    ],
+    "license": "MIT"
+}
