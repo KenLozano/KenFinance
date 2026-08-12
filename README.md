@@ -36,7 +36,7 @@
 
 ```bash
 # 1. Clonar repositorio
-git clone https://github.com/KenLozano/konteo05-finanzas.git
+git clone https://github.com/KenLozano/KenFinance05-finanzas.git
 cd KenFinance
 
 # 2. Servir con servidor HTTP simple

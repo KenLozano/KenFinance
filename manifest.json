@@ -1,6 +1,6 @@
 {
-    "name": "Konteo 05 — Mis Finanzas",
-    "short_name": "Konteo 05",
+    "name": "KenFinance — Mis Finanzas",
+    "short_name": "KenFinance",
     "description": "Tu app personal de finanzas — controla tus ingresos y gastos",
     "start_url": "/",
     "display": "standalone",

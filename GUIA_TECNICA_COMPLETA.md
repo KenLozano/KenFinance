@@ -1,4 +1,4 @@
-# 🛠️ GUÍA TÉCNICA COMPLETA - Mi Dinero
+# 🛠️ GUÍA TÉCNICA COMPLETA - KenFinance
 
 > **Manual del Desarrollador para Edición, Modificación y Defensa Técnica**
 
@@ -719,7 +719,7 @@ const categoryNames = {
 ```html
 <header>
     <img src="/icons/logo.png" alt="Logo" style="height: 40px;">
-    <span>Mi Dinero</span>
+    <span>KenFinance</span>
     <!-- ... -->
 </header>
 ```

@@ -75,7 +75,7 @@ function createSummarySheet(data, period, email) {
     const periodName = period === 'semanal' ? 'SEMANAL' : 'MENSUAL';
 
     return [
-        ['KONTEO 05 - REPORTE FINANCIERO ' + periodName],
+        ['KenFinance - REPORTE FINANCIERO ' + periodName],
         ['Generado:', new Date().toLocaleString('es-PE')],
         ['Usuario:', email],
         [],
@@ -175,7 +175,7 @@ export async function exportToExcel(period) {
         XLSX.utils.book_append_sheet(wb, ws4, 'Analisis');
 
         const periodName = period === 'semanal' ? 'Semanal' : 'Mensual';
-        XLSX.writeFile(wb, `Konteo05_${periodName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(wb, `KenFinance_${periodName}_${new Date().toISOString().split('T')[0]}.xlsx`);
         showToast(`Reporte ${periodName} descargado`, 'success');
     } catch (err) {
         showToast('Error al exportar: ' + err.message, 'error');
@@ -211,7 +211,7 @@ export async function exportToPDF(type) {
 
         doc.setFontSize(20);
         doc.setTextColor(109, 91, 255);
-        doc.text('Konteo 05 - Reporte Financiero', 105, 20, { align: 'center' });
+        doc.text('KenFinance - Reporte Financiero', 105, 20, { align: 'center' });
 
         doc.setFontSize(12);
         doc.setTextColor(100);
@@ -264,10 +264,10 @@ export async function exportToPDF(type) {
             doc.setFontSize(8);
             doc.setTextColor(150);
             doc.text(`Pagina ${i}/${pageCount}`, 105, 290, { align: 'center' });
-            doc.text('Konteo 05 (c) 2026', 20, 290);
+            doc.text('KenFinance (c) 2026', 20, 290);
         }
 
-        doc.save(`Konteo05_${typeText}_${new Date().toISOString().split('T')[0]}.pdf`);
+        doc.save(`KenFinance_${typeText}_${new Date().toISOString().split('T')[0]}.pdf`);
         showToast('PDF generado', 'success');
     } catch (err) {
         showToast('Error PDF: ' + err.message, 'error');

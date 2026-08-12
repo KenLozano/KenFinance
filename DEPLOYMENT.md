@@ -1,6 +1,6 @@
-# 🚀 Guía de Despliegue - Mi Dinero
+# 🚀 Guía de Despliegue - KenFinance
 
-Esta guía te ayudará a desplegar **Mi Dinero** en producción en minutos.
+Esta guía te ayudará a desplegar **KenFinance** en producción en minutos.
 
 ---
 
@@ -58,7 +58,7 @@ Antes de desplegar, asegúrate de tener:
    ```bash
    git init
    git add .
-   git commit -m "Deploy Mi Dinero"
+   git commit -m "Deploy KenFinance"
    git branch -M main
    git remote add origin https://github.com/tuusuario/mi-dinero.git
    git push -u origin main

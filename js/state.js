@@ -6,10 +6,10 @@ export const state = {
     currentBudget: 0,
     currentLoadToken: 0,
     isOnline: navigator.onLine,
-    currentSort: localStorage.getItem('konteo.sort') || 'date_desc',
-    exportPeriod: localStorage.getItem('konteo.export.period') || 'semanal',
-    customRangeStart: localStorage.getItem('konteo.range.start') || '',
-    customRangeEnd: localStorage.getItem('konteo.range.end') || '',
+    currentSort: localStorage.getItem('KenFinance.sort') || 'date_desc',
+    exportPeriod: localStorage.getItem('KenFinance.export.period') || 'semanal',
+    customRangeStart: localStorage.getItem('KenFinance.range.start') || '',
+    customRangeEnd: localStorage.getItem('KenFinance.range.end') || '',
     latestExpenseItem: null,
     planConfig: {
         incomeTarget: 0,
@@ -23,8 +23,8 @@ export const state = {
 };
 
 export function persistUiState() {
-    localStorage.setItem('konteo.sort', state.currentSort);
-    localStorage.setItem('konteo.export.period', state.exportPeriod || 'semanal');
-    localStorage.setItem('konteo.range.start', state.customRangeStart || '');
-    localStorage.setItem('konteo.range.end', state.customRangeEnd || '');
+    localStorage.setItem('KenFinance.sort', state.currentSort);
+    localStorage.setItem('KenFinance.export.period', state.exportPeriod || 'semanal');
+    localStorage.setItem('KenFinance.range.start', state.customRangeStart || '');
+    localStorage.setItem('KenFinance.range.end', state.customRangeEnd || '');
 }

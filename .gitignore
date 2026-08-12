@@ -5,6 +5,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 .firebase/
-*.backup
+*.backup*
 css/*.backup
 .vercel
