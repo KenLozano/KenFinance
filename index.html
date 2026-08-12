@@ -15,12 +15,25 @@
     <link rel="manifest" href="/manifest.json">
 
     <!-- CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self';
-        script-src 'self' https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        font-src https://fonts.gstatic.com;
-        connect-src https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.firebasestorage.app;
-        img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self'
+        https://cdn.sheetjs.com
+        https://cdn.jsdelivr.net
+        https://cdnjs.cloudflare.com
+        https://www.gstatic.com
+        https://apis.google.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    connect-src
+        https://*.googleapis.com
+        https://*.firebaseio.com
+        https://*.firebaseapp.com
+        https://*.firebasestorage.app;
+        frame-src https://*.firebaseapp.com 
+        https://accounts.google.com;
+    img-src 'self' data:;
+">
 
     <title>KenFinance — Mis Finanzas</title>
     <link
@@ -44,10 +57,19 @@
                         <p class="subtitle">Mis Finanzas Personales</p>
                     </div>
                     <form id="login-form">
-                        <input type="email" id="email" placeholder="Correo electrónico" required>
-                        <input type="password" id="password" placeholder="Contraseña" required>
-                        <button type="submit">Iniciar Sesión</button>
-                    </form>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <button type="submit">Iniciar Sesión</button>
+</form>
+
+<div class="auth-divider">
+    <span>o continúa con</span>
+</div>
+
+<button type="button" id="google-login-btn" class="google-login-btn">
+    <span class="google-icon">G</span>
+    Continuar con Google
+</button>
                     <p class="auth-switch"><a href="#" id="forgot-password-link">Olvidé mi contraseña</a></p>
                     <p class="auth-switch">¿No tienes cuenta? <a href="#" id="show-register">Crear cuenta</a></p>
                 </div>

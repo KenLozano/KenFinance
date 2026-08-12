@@ -1,4 +1,4 @@
-﻿// js/app.js — Main entry point for Konteo 05
+﻿// js/app.js — Main entry point for KenFinance
 // All inline code from index.html has been extracted into this modular architecture.
 
 import { auth, db, firebase } from './firebase/config.js';
@@ -16,7 +16,7 @@ import { exportToExcel, exportToPDF } from './services/exportService.js';
 // THEME
 // ============================================
 function initTheme() {
-    const saved = localStorage.getItem('konteo.theme');
+    const saved = localStorage.getItem('KenFinance.theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const theme = saved || (prefersDark ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', theme);
@@ -27,7 +27,7 @@ function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('konteo.theme', next);
+    localStorage.setItem('KenFinance.theme', next);
     updateThemeIcon(next);
 }
 
@@ -351,14 +351,64 @@ document.getElementById('login-form').onsubmit = async (e) => {
     const password = document.getElementById('password').value;
     const btn = e.target.querySelector('button[type="submit"]');
     const original = btn?.textContent;
-    if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
+    // Evita doble envío
+    if (btn?.disabled) return;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Cargando...';
+    }
     try {
         await auth.signInWithEmailAndPassword(email, password);
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
-        if (btn) { btn.disabled = false; btn.textContent = original; }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = original;
+        }
     }
 };
+// ============================================
+// GOOGLE AUTH
+// ============================================
+document.getElementById('google-login-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('google-login-btn');
+
+    if (btn?.disabled) return;
+
+    const originalText = btn?.innerHTML;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Conectando con Google...';
+    }
+
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+
+        await auth.signInWithPopup(provider);
+
+    } catch (err) {
+        console.error('Google login error:', err);
+
+        if (err.code === 'auth/popup-closed-by-user') {
+            showToast('Inicio de sesión con Google cancelado', 'info');
+        } else if (err.code === 'auth/popup-blocked') {
+            showToast('El navegador bloqueó la ventana de Google', 'error');
+        } else {
+            showToast('No se pudo iniciar sesión con Google: ' + err.message, 'error');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+});
 
 document.getElementById('register-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -390,7 +440,7 @@ document.getElementById('register-form').onsubmit = async (e) => {
             bio: '',
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        showToast('¡Cuenta creada! Bienvenido a Konteo 05', 'success');
+        showToast('¡Cuenta creada! Bienvenido a KenFinance', 'success');
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
         if (btn) { btn.disabled = false; btn.textContent = original; }
@@ -398,13 +448,11 @@ document.getElementById('register-form').onsubmit = async (e) => {
 };
 
 document.getElementById('logout-btn').onclick = async () => {
-    if (confirm('¿Cerrar sesión?')) {
-        try {
-            await auth.signOut();
-            showToast('Sesión cerrada', 'success');
-        } catch (err) {
-            showToast('Error: ' + err.message, 'error');
-        }
+    try {
+        await auth.signOut();
+        showToast('Sesión cerrada', 'success');
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
     }
 };
 
@@ -559,6 +607,9 @@ document.getElementById('btn-expense').onclick = () => {
 // ============================================
 // EVENT LISTENERS — Save income
 // ============================================
+let isSavingIncome = false;
+let isSavingExpense = false;
+
 document.getElementById('form-income').onsubmit = async (e) => {
     e.preventDefault();
     let amount = parseFloat(document.getElementById('income-amount').value);
@@ -583,24 +634,48 @@ document.getElementById('form-income').onsubmit = async (e) => {
     todayEnd.setHours(23, 59, 59, 999);
     if (date > todayEnd) { showToast('No puedes registrar transacciones futuras', 'error'); return; }
     if (!state.isOnline) { showToast('Sin conexión. Conéctate para guardar.', 'error'); return; }
+    if (isSavingIncome) return;
 
-    try {
-        const data = {
-            amount,
-            date: firebase.firestore.Timestamp.fromDate(date),
-            note, source, account, tags
-        };
+isSavingIncome = true;
 
-        await dbService.saveIncome(state.currentUser.uid, data, editId || null);
-        showToast(editId ? 'Ingreso actualizado ✅' : 'Ingreso guardado ✅', 'success');
-        closeModal('modal-income');
-        e.target.reset();
-        document.getElementById('income-edit-id').value = '';
-        loadData();
-    } catch (err) {
-        showToast('Error: ' + err.message, 'error');
+const submitBtn = e.target.querySelector('button[type="submit"]');
+const originalText = submitBtn?.textContent;
+
+if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Guardando...';
+}
+try {
+    const data = {
+        amount,
+        date: firebase.firestore.Timestamp.fromDate(date),
+        note, source, account, tags
+    };
+
+    await dbService.saveIncome(state.currentUser.uid, data, editId || null);
+
+    showToast(
+        editId ? 'Ingreso actualizado ✅' : 'Ingreso guardado ✅',
+        'success'
+    );
+
+    closeModal('modal-income');
+    e.target.reset();
+    document.getElementById('income-edit-id').value = '';
+    loadData();
+
+} catch (err) {
+    showToast('Error: ' + err.message, 'error');
+
+} finally {
+    isSavingIncome = false;
+
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
-};
+}
+}
 
 // ============================================
 // EVENT LISTENERS — Save expense
@@ -632,7 +707,17 @@ document.getElementById('form-expense').onsubmit = async (e) => {
     todayEnd.setHours(23, 59, 59, 999);
     if (date > todayEnd) { showToast('No puedes registrar transacciones futuras', 'error'); return; }
     if (!state.isOnline) { showToast('Sin conexión. Conéctate para guardar.', 'error'); return; }
+    if (isSavingExpense) return;
 
+isSavingExpense = true;
+
+const submitBtn = e.target.querySelector('button[type="submit"]');
+const originalText = submitBtn?.textContent;
+
+if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Guardando...';
+}
     try {
         const data = {
             amount,
@@ -648,7 +733,14 @@ document.getElementById('form-expense').onsubmit = async (e) => {
         loadData();
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
+    }finally {
+    isSavingExpense = false;
+
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
+}
 };
 
 
