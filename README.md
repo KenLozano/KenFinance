@@ -1,4 +1,4 @@
-# 📊 Mi Dinero - Aplicación de Finanzas Personales
+# 📊 KenFinance - Aplicación de Finanzas Personales
 
 > **Gestiona tus finanzas de forma simple, segura y efectiva**
 
@@ -11,7 +11,7 @@
 
 ## 🎯 Descripción
 
-**Mi Dinero** es una aplicación web progresiva (PWA) para gestión de finanzas personales diseñada para ser simple, intuitiva y poderosa. Permite a los usuarios llevar un control detallado de sus ingresos y gastos con visualizaciones interactivas, exportaciones profesionales y funcionalidad offline.
+**KenFInance** es una aplicación web progresiva (PWA) para gestión de finanzas personales diseñada para ser simple, intuitiva y poderosa. Permite a los usuarios llevar un control detallado de sus ingresos y gastos con visualizaciones interactivas, exportaciones profesionales y funcionalidad offline.
 
 ### ✨ Características Destacadas
 
@@ -36,8 +36,8 @@
 
 ```bash
 # 1. Clonar repositorio
-git clone https://github.com/tuusuario/mi-dinero.git
-cd mi-dinero
+git clone https://github.com/KenLozano/konteo05-finanzas.git
+cd KenFinance
 
 # 2. Servir con servidor HTTP simple
 python -m http.server 8000
@@ -293,7 +293,7 @@ Para queries más rápidas, agregar en **Firestore** → **Índices**:
 #### En Windows/Mac/Linux
 1. Abrir en Chrome/Edge
 2. Click icono **⊕** en barra de direcciones
-3. Click "Instalar Mi Dinero"
+3. Click "Instalar KenFinance"
 4. Listo! Aparecerá como app nativa
 
 #### En Android
@@ -311,7 +311,7 @@ Para queries más rápidas, agregar en **Firestore** → **Índices**:
 ## 🏗️ Estructura del Proyecto
 
 ```
-mi-dinero/
+KenFinance/
 ├── index.html              # Aplicación principal (1,390 líneas)
 ├── manifest.json           # PWA manifest
 ├── service-worker.js       # Service Worker (offline, cache)

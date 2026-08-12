@@ -1,5 +1,5 @@
-// Service Worker - Konteo 05
-const CACHE_NAME = 'konteo05-v4.0.0';
+// Service Worker - KenFinance
+const CACHE_NAME = 'KenFinance-v1.0.0';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -95,12 +95,12 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('push', (event) => {
   event.waitUntil(
-    self.registration.showNotification('Konteo 05', {
+    self.registration.showNotification('KenFinance', {
       body: event.data ? event.data.text() : 'Nueva notificacion',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
       vibrate: [200, 100, 200],
-      tag: 'konteo05-notification'
+      tag: 'kenfinance-notification'
     })
   );
 });
