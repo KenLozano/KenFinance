@@ -72,14 +72,16 @@ service cloud.firestore {
         ));
     }
 
-    function isValidIncomeData() {
+function isValidIncomeData() {
       return hasRequiredIncomeFields() &&
         isValidAmount(request.resource.data.amount) &&
         isValidDate(request.resource.data.date) &&
         isValidOptionalNote() &&
         isValidOptionalText('source', 40) &&
         isValidOptionalText('account', 40) &&
-        isValidOptionalText('tags', 100);
+        isValidOptionalText('tags', 100) &&
+        (!('assetId' in request.resource.data) || request.resource.data.assetId is string) &&
+        (!('goalId' in request.resource.data) || request.resource.data.goalId is string);
     }
 
     function isValidExpenseData() {
@@ -91,7 +93,9 @@ service cloud.firestore {
         isValidOptionalText('merchant', 80) &&
         isValidOptionalText('method', 40) &&
         isValidOptionalText('priority', 20) &&
-        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']);
+        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']) &&
+        (!('assetId' in request.resource.data) || request.resource.data.assetId is string) &&
+        (!('goalId' in request.resource.data) || request.resource.data.goalId is string);
     }
 
     function isValidBudgetData() {
@@ -99,6 +103,26 @@ service cloud.firestore {
         request.resource.data.amount is number &&
         request.resource.data.amount >= 0 &&
         request.resource.data.amount <= 999999999;
+    }
+    function isValidAssetData() {
+      return request.resource.data.keys().hasAll(['name', 'type', 'currency']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 60 &&
+        request.resource.data.type in ['bank_account', 'wallet', 'cash', 'credit_card', 'crypto'] &&
+        request.resource.data.currency in ['PEN', 'USD', 'EUR'];
+    }
+
+    function isValidGoalData() {
+      return request.resource.data.keys().hasAll(['name', 'targetAmount']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 60 &&
+        request.resource.data.targetAmount is number &&
+        request.resource.data.targetAmount > 0 &&
+        request.resource.data.targetAmount <= 999999999 &&
+        isValidOptionalText('category', 40) &&
+        (!('deadline' in request.resource.data) || request.resource.data.deadline is timestamp)
     }
 
     match /users/{userId} {
@@ -123,6 +147,15 @@ service cloud.firestore {
     match /budgets/{userId} {
       allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && isValidBudgetData();
+    }
+    match /users/{userId}/assets/{assetId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidAssetData();
+    }
+
+    match /users/{userId}/goals/{goalId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidGoalData();
     }
 
     match /plans/{userId} {

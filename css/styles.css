@@ -314,17 +314,18 @@ main.dashboard-animate {
     padding: 26px 20px 80px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-        "controls controls"
-        "balance balance"
-        "stats stats"
-        "insights insights"
-        "strategy strategy"
-        "actions actions"
-        "charts charts"
-        "export export"
-        "transactions transactions"
-        "footer footer";
+grid-template-areas:
+    "controls controls"
+    "balance balance"
+    "stats stats"
+    "accounts accounts"
+    "actions actions"
+    "insights insights"
+    "strategy strategy"
+    "charts charts"
+    "export export"
+    "transactions transactions"
+    "footer footer";
     gap: 16px;
 }
 
@@ -1494,6 +1495,7 @@ textarea:focus-visible {
             "controls"
             "balance"
             "stats"
+            "accounts"
             "insights"
             "strategy"
             "actions"
@@ -1550,7 +1552,7 @@ textarea:focus-visible {
 
 @media (max-width: 720px) {
     main.dashboard-animate {
-        padding: 16px 12px 70px;
+        padding: 16px 12px 100px;
     }
 
     header {
@@ -1611,14 +1613,57 @@ textarea:focus-visible {
         grid-template-columns: 1fr;
     }
 
-    .actions {
-        grid-template-columns: 1fr 1fr;
+.actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 250;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+
+    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.actions #btn-income,
+.actions #btn-expense {
+    min-height: 50px;
+}
+
+.actions #btn-duplicate-expense {
+    display: none;
+}
+
+    .accounts-header {
+        align-items: stretch;
+        flex-direction: column;
     }
 
-    .btn-add.btn-neutral {
-        grid-column: 1 / -1;
+    .accounts-list {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 720px) {
+    [data-theme="dark"] .actions {
+        background: rgba(24, 24, 27, 0.96);
+        border-top-color: var(--line);
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
     }
 }
+
 
 @media (max-width: 480px) {
     .filters-grid {
@@ -1644,9 +1689,7 @@ textarea:focus-visible {
         grid-template-columns: 1fr;
     }
 
-    .actions {
-        grid-template-columns: 1fr;
-    }
+
 }
 
 /* ============================================
@@ -2061,7 +2104,81 @@ textarea:focus-visible {
     opacity: 0.65;
     cursor: not-allowed;
 }
+.accounts-section {
+    grid-area: accounts;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
 
-.google-icon {
-    font-weight: 800;
+.accounts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.accounts-header h3 {
+    font-size: 18px;
+}
+
+.accounts-header p {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.accounts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.account-card {
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.account-card h4 {
+    font-size: 15px;
+}
+
+.account-card-type {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.account-card-balance {
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.account-card-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.account-card-actions button {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
 }

@@ -178,3 +178,106 @@ export async function getAllTransactionsOrdered(uid) {
     txs.sort((a, b) => toMs(b) - toMs(a));
     return txs;
 }
+
+/**
+ * Obtiene todos los assets (cuentas) del usuario.
+ */
+export async function getAssets(uid) {
+    const snap = await db.collection('users').doc(uid).collection('assets').get();
+    return snap.docs.map(doc => normalizeTimestamps({ id: doc.id, ...doc.data() }));
+}
+
+/**
+ * Guarda o actualiza un asset.
+ */
+export async function saveAsset(uid, data, editId = null) {
+    const colRef = db.collection('users').doc(uid).collection('assets');
+
+    const payload = {
+        ...data,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (editId) {
+        await colRef.doc(editId).update(payload);
+
+        return editId;
+    }
+
+    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+    const docRef = await colRef.add(payload);
+
+    return docRef.id;
+}
+
+/**
+ * Elimina un asset.
+ */
+export async function deleteAsset(uid, assetId) {
+    await db.collection('users').doc(uid).collection('assets').doc(assetId).delete();
+}
+
+/**
+ * Obtiene todas las goals (metas) del usuario.
+ */
+export async function getGoals(uid) {
+    const snap = await db.collection('users').doc(uid).collection('goals').get();
+    return snap.docs.map(doc => normalizeTimestamps({ id: doc.id, ...doc.data() }));
+}
+
+/**
+ * Guarda o actualiza una goal.
+ */
+export async function saveGoal(uid, data, editId = null) {
+    const colRef = db.collection('users').doc(uid).collection('goals');
+    const payload = { ...data };
+    if (payload.deadline instanceof Date) {
+        payload.deadline = firebase.firestore.Timestamp.fromDate(payload.deadline);
+    }
+    if (editId) {
+        await colRef.doc(editId).update(payload);
+    } else {
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await colRef.add(payload);
+    }
+}
+
+/**
+ * Elimina una goal.
+ */
+export async function deleteGoal(uid, goalId) {
+    await db.collection('users').doc(uid).collection('goals').doc(goalId).delete();
+}
+
+/**
+ * Calcula el balance de un asset sumando los movimientos que le pertenecen.
+ * No se guarda como campo fijo — se recalcula cada vez (más seguro, como se decidió).
+ */
+export async function getAssetBalance(uid, assetId) {
+    const all = await getAllTransactionsOrdered(uid);
+    return all
+        .filter(t => t.assetId === assetId)
+        .reduce((sum, t) => sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+}
+
+/**
+ * Calcula cuánto se ha asignado a una goal sumando los movimientos vinculados.
+ */
+export async function getGoalProgress(uid, goalId) {
+    const all = await getAllTransactionsOrdered(uid);
+    return all
+        .filter(t => t.goalId === goalId)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+}
+/**
+ * Convierte los Timestamp de Firestore a Date normal de JS
+ * antes de que el resto de la app los vea.
+ */
+function normalizeTimestamps(data) {
+    const result = { ...data };
+    ['date', 'createdAt', 'updatedAt', 'deadline'].forEach(field => {
+        if (result[field]?.toDate) result[field] = result[field].toDate();
+    });
+    return result;
+}

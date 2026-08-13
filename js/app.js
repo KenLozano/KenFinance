@@ -1,7 +1,7 @@
 ﻿// js/app.js — Main entry point for KenFinance
 // All inline code from index.html has been extracted into this modular architecture.
 
-import { auth, db, firebase } from './firebase/config.js';
+import { db, firebase } from './firebase/config.js';
 import { state, persistUiState } from './state.js';
 import { showPage, fmt, normalizeText, normalizeNote, normalizeTags, todayString, sortTransactions, calculateProfileCompletion, toggleCustomRangePanel } from './ui/helpers.js';
 import { showToast } from './ui/toast.js';
@@ -11,6 +11,7 @@ import { renderCharts } from './ui/charts.js';
 import { updateInsights, updateStrategyPanel, loadPlanConfigToUi, savePlanConfigFromUi } from './ui/insights.js';
 import * as dbService from './services/dbService.js';
 import { exportToExcel, exportToPDF } from './services/exportService.js';
+import * as authService from './services/authService.js';
 
 // ============================================
 // THEME
@@ -122,7 +123,7 @@ async function saveUserProfile() {
 
     await dbService.saveUserProfile(state.currentUser.uid, profileData);
     if (state.currentUser.displayName !== name) {
-        await state.currentUser.updateProfile({ displayName: name });
+       await authService.updateDisplayName(state.currentUser, name);
     }
     state.userProfile = { ...state.userProfile, ...profileData };
     document.getElementById('user-name').textContent = name;
@@ -131,7 +132,99 @@ async function saveUserProfile() {
     closeModal('modal-profile');
     showToast('Perfil actualizado', 'success');
 }
+// ============================================
+// ACCOUNTS / ASSETS
+// ============================================
+async function loadAccounts() {
+    if (!state.currentUser) return;
 
+    const list = document.getElementById('accounts-list');
+    if (!list) return;
+
+    try {
+        const assets = await dbService.getAssets(state.currentUser.uid);
+
+        list.innerHTML = '';
+
+        if (!assets.length) {
+            const empty = document.createElement('p');
+            empty.className = 'empty';
+            empty.textContent = 'Aún no tienes cuentas registradas.';
+            list.appendChild(empty);
+            return;
+        }
+
+        const typeLabels = {
+            bank_account: 'Cuenta bancaria',
+            wallet: 'Billetera digital',
+            cash: 'Efectivo',
+            credit_card: 'Tarjeta de crédito',
+            crypto: 'Criptomonedas'
+        };
+
+        const currencySymbols = {
+            PEN: 'S/',
+            USD: '$',
+            EUR: '€'
+        };
+
+        const balances = await Promise.all(
+            assets.map(asset =>
+                dbService.getAssetBalance(state.currentUser.uid, asset.id)
+            )
+        );
+
+        assets.forEach((asset, index) => {
+            const balance = balances[index] || 0;
+
+            const card = document.createElement('article');
+            card.className = 'account-card';
+            card.dataset.id = asset.id;
+
+            const header = document.createElement('div');
+            header.className = 'account-card-header';
+
+            const info = document.createElement('div');
+
+            const name = document.createElement('h4');
+            name.textContent = asset.name;
+
+            const type = document.createElement('p');
+            type.className = 'account-card-type';
+            type.textContent =
+                typeLabels[asset.type] || 'Cuenta';
+
+            info.appendChild(name);
+            info.appendChild(type);
+
+            header.appendChild(info);
+
+            const balanceEl = document.createElement('p');
+            balanceEl.className = 'account-card-balance';
+
+            const symbol =
+                currencySymbols[asset.currency] || asset.currency;
+
+            balanceEl.textContent =
+                `${symbol} ${fmt(balance)}`;
+
+            card.appendChild(header);
+            card.appendChild(balanceEl);
+
+            list.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error('Accounts load error:', err);
+
+        list.innerHTML = '';
+
+        const error = document.createElement('p');
+        error.className = 'empty';
+        error.textContent = 'No se pudieron cargar las cuentas.';
+        list.appendChild(error);
+    }
+}
 
 
 // ============================================
@@ -315,7 +408,7 @@ async function duplicateLastExpense() {
 // ============================================
 // AUTH STATE
 // ============================================
-auth.onAuthStateChanged(user => {
+authService.onAuthStateChanged(user => {
     if (user) {
         state.currentUser = user;
         showPage('dashboard');
@@ -331,6 +424,7 @@ auth.onAuthStateChanged(user => {
         loadPlanConfigToUi();
         toggleCustomRangePanel(state.currentFilter);
         loadUserProfile();
+        loadAccounts();
 
         const recoveryInput = document.getElementById('recovery-email');
         if (recoveryInput) recoveryInput.value = user.email || '';
@@ -358,7 +452,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
         btn.textContent = 'Cargando...';
     }
     try {
-        await auth.signInWithEmailAndPassword(email, password);
+        await authService.login(email, password);
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     } finally {
@@ -384,13 +478,7 @@ document.getElementById('google-login-btn')?.addEventListener('click', async () 
     }
 
     try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        provider.setCustomParameters({
-            prompt: 'select_account'
-        });
-
-        await auth.signInWithPopup(provider);
+        await authService.loginWithGoogle();
 
     } catch (err) {
         console.error('Google login error:', err);
@@ -429,8 +517,8 @@ document.getElementById('register-form').onsubmit = async (e) => {
     if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
 
     try {
-        const cred = await auth.createUserWithEmailAndPassword(email, password);
-        await cred.user.updateProfile({ displayName: sanitizedName });
+        const cred = await authService.register(email, password);
+        await authService.updateDisplayName(cred.user, sanitizedName);
         await db.collection('users').doc(cred.user.uid).set({
             name: sanitizedName,
             phone,
@@ -447,14 +535,19 @@ document.getElementById('register-form').onsubmit = async (e) => {
     }
 };
 
-document.getElementById('logout-btn').onclick = async () => {
+document.getElementById('logout-btn').onclick = () => {
+    openModal('modal-logout');
+};
+
+document.getElementById('btn-confirm-logout')?.addEventListener('click', async () => {
     try {
-        await auth.signOut();
+        await authService.logout();
+        closeModal('modal-logout');
         showToast('Sesión cerrada', 'success');
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     }
-};
+});
 
 document.getElementById('show-register').onclick = (e) => { e.preventDefault(); showPage('register'); };
 document.getElementById('show-login').onclick = (e) => { e.preventDefault(); showPage('login'); };
@@ -485,7 +578,7 @@ document.getElementById('form-recovery')?.addEventListener('submit', async (e) =
     const alt = (document.getElementById('recovery-alt-email')?.value || '').trim();
     if (!email) { showToast('Ingresa el correo de la cuenta', 'error'); return; }
     try {
-        await auth.sendPasswordResetEmail(email);
+        await authService.sendPasswordReset(email);
         let altSaved = true;
         if (alt && state.currentUser) {
             try {
@@ -603,7 +696,165 @@ document.getElementById('btn-expense').onclick = () => {
     if (priority) priority.value = 'media';
     openModal('modal-expense');
 };
+document.getElementById('btn-new-account')?.addEventListener('click', () => {
+    const form = document.getElementById('form-account');
 
+    form?.reset();
+
+    document.getElementById('account-edit-id').value = '';
+    document.getElementById('account-currency').value = 'PEN';
+    document.getElementById('modal-account-title').textContent = 'Nueva cuenta';
+
+    openModal('modal-account');
+});
+let isSavingAccount = false;
+
+document.getElementById('form-account')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!state.currentUser || isSavingAccount) return;
+
+    const name = normalizeText(
+        document.getElementById('account-name')?.value || '',
+        60
+    );
+
+    const type =
+        document.getElementById('account-type')?.value || '';
+
+    const currency =
+        document.getElementById('account-currency')?.value || 'PEN';
+
+    const initialBalanceRaw =
+        document.getElementById('account-initial-balance')?.value || '';
+
+    const initialBalance =
+        initialBalanceRaw === ''
+            ? 0
+            : Number(initialBalanceRaw);
+
+    const editId =
+        document.getElementById('account-edit-id')?.value || '';
+
+    if (!name) {
+        showToast('Ingresa un nombre para la cuenta', 'error');
+        return;
+    }
+
+    if (!type) {
+        showToast('Selecciona el tipo de cuenta', 'error');
+        return;
+    }
+
+    if (!['PEN', 'USD', 'EUR'].includes(currency)) {
+        showToast('Selecciona una moneda válida', 'error');
+        return;
+    }
+
+    if (
+        !Number.isFinite(initialBalance) ||
+        initialBalance < 0 ||
+        initialBalance > 999999999
+    ) {
+        showToast('Ingresa un saldo inicial válido', 'error');
+        return;
+    }
+
+    if (!state.isOnline) {
+        showToast('Sin conexión. Conéctate para guardar.', 'error');
+        return;
+    }
+
+    const submitBtn =
+        e.target.querySelector('button[type="submit"]');
+
+    const originalText = submitBtn?.textContent;
+
+    isSavingAccount = true;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
+    }
+
+    try {
+        const assetData = {
+            name,
+            type,
+            currency
+        };
+
+        const assetId = await dbService.saveAsset(
+            state.currentUser.uid,
+            assetData,
+            editId || null
+        );
+
+        // El saldo inicial solo se crea al registrar una cuenta nueva.
+        if (!editId && initialBalance > 0) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const legacyAccountMap = {
+                bank_account: 'banco',
+                wallet: 'billetera',
+                cash: 'efectivo',
+                credit_card: 'banco',
+                crypto: 'billetera'
+            };
+
+            const initialMovement = {
+                amount: Math.round(initialBalance * 100) / 100,
+                date: firebase.firestore.Timestamp.fromDate(today),
+                note: 'Saldo inicial',
+                source: 'otros',
+                account: legacyAccountMap[type] || 'efectivo',
+                tags: 'saldo-inicial',
+                assetId
+            };
+
+            await dbService.saveIncome(
+                state.currentUser.uid,
+                initialMovement
+            );
+        }
+
+        closeModal('modal-account');
+        e.target.reset();
+
+        document.getElementById('account-edit-id').value = '';
+
+        showToast(
+            editId
+                ? 'Cuenta actualizada ✅'
+                : 'Cuenta creada ✅',
+            'success'
+        );
+
+        await loadAccounts();
+
+        // El saldo inicial también es un movimiento,
+        // por lo que refrescamos el dashboard.
+        if (!editId && initialBalance > 0) {
+            loadData();
+        }
+
+    } catch (err) {
+        console.error('Account save error:', err);
+        showToast(
+            'No se pudo guardar la cuenta: ' + err.message,
+            'error'
+        );
+
+    } finally {
+        isSavingAccount = false;
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
+});
 // ============================================
 // EVENT LISTENERS — Save income
 // ============================================
