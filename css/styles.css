@@ -2171,14 +2171,140 @@ textarea:focus-visible {
     margin-top: 12px;
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .account-card-actions button {
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--card);
-    padding: 6px 10px;
+    color: var(--text);
+    padding: 8px 12px;
     cursor: pointer;
     font-size: 12px;
     font-weight: 700;
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .15s ease;
+}
+
+.account-card-actions button:hover {
+    background: var(--card-soft);
+    border-color: var(--accent);
+}
+
+.account-card-actions button:active {
+    transform: scale(0.98);
+}
+
+.account-edit-btn {
+    color: var(--text);
+}
+
+.account-delete-btn {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.account-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.55);
+}
+.accounts-total {
+    margin-bottom: 14px;
+    padding: 16px;
+
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 1px solid #334155;
+    border-radius: 12px;
+
+    color: #fff;
+}
+
+.accounts-total > span {
+    display: block;
+    margin-bottom: 6px;
+
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.accounts-total-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+}
+
+.accounts-total-values strong {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 26px;
+}
+[data-theme="dark"] .account-card-actions button {
+    background: #18181b;
+    color: #f8fafc;
+    border-color: #3f3f46;
+}
+
+[data-theme="dark"] .account-edit-btn:hover {
+    background: #23232a;
+}
+
+[data-theme="dark"] .account-delete-btn {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+[data-theme="dark"] .account-delete-btn:hover {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.55);
+}
+
+.account-warning-modal {
+    max-width: 420px;
+    text-align: center;
+}
+
+.account-warning-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid #f59e0b;
+    border-radius: 50%;
+
+    color: #f59e0b;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.account-warning-icon.danger {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.account-warning-modal h3 {
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+.account-warning-modal p {
+    margin-bottom: 22px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.btn-danger {
+    background: #dc2626;
+    border: 1px solid #dc2626;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
 }

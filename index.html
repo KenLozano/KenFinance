@@ -271,6 +271,11 @@
         </button>
     </div>
 
+    <div id="accounts-total" class="accounts-total">
+    <span>Saldo total</span>
+    <strong>S/ 0.00</strong>
+</div>
+
     <div id="accounts-list" class="accounts-list">
         <p class="empty">Aún no tienes cuentas registradas.</p>
     </div>
@@ -348,11 +353,9 @@
                     <option value="negocio">Negocio</option>
                     <option value="otros">Otros</option>
                 </select>
-                <select id="income-account">
-                    <option value="efectivo">Efectivo</option>
-                    <option value="banco">Banco</option>
-                    <option value="billetera">Billetera digital</option>
-                </select>
+                <select id="income-account" required>
+    <option value="">Selecciona una cuenta</option>
+</select>
                 <input type="text" id="income-tags" placeholder="Etiquetas (ej: enero, bono)" maxlength="100">
                 <input type="text" id="income-note" placeholder="Nota (opcional)" maxlength="100">
                 <div class="modal-buttons">
@@ -377,6 +380,9 @@
                 </div>
                 <input type="number" id="expense-amount" placeholder="Monto (S/)" step="0.01" min="0.01" required>
                 <input type="date" id="expense-date" required>
+                <select id="expense-account" required>
+    <option value="">Selecciona la cuenta de origen</option>
+</select>
                 <div class="category-buttons">
                     <label>🟢 Fijo<input type="radio" name="category" value="green"></label>
                     <label>🟡 Necesario<input type="radio" name="category" value="yellow"></label>
@@ -521,6 +527,76 @@
         </form>
     </div>
 </div>
+
+<!-- Modal: cuenta con saldo -->
+<div id="modal-account-has-balance"
+     class="modal hidden"
+     role="dialog"
+     aria-labelledby="account-has-balance-title"
+     aria-modal="true">
+
+    <div class="modal-content account-warning-modal">
+
+        <div class="account-warning-icon">!</div>
+
+        <h3 id="account-has-balance-title">
+            No puedes eliminar esta cuenta
+        </h3>
+
+        <p id="account-has-balance-message">
+            Para eliminarla, primero debes dejar su saldo en cero.
+        </p>
+
+        <div class="modal-buttons">
+            <button
+                type="button"
+                class="cancel"
+                data-modal="modal-account-has-balance">
+                Entendido
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: confirmar eliminación de cuenta -->
+<div id="modal-delete-account"
+     class="modal hidden"
+     role="dialog"
+     aria-labelledby="delete-account-title"
+     aria-modal="true">
+
+    <div class="modal-content account-warning-modal">
+
+        <div class="account-warning-icon danger">!</div>
+
+        <h3 id="delete-account-title">
+            ¿Eliminar esta cuenta?
+        </h3>
+
+        <p id="delete-account-message">
+            Esta acción no se puede deshacer.
+        </p>
+
+        <div class="modal-buttons">
+            <button
+                type="button"
+                class="cancel"
+                data-modal="modal-delete-account">
+                Cancelar
+            </button>
+
+            <button
+                type="button"
+                id="btn-confirm-delete-account"
+                class="btn-danger">
+                Eliminar
+            </button>
+        </div>
+
+    </div>
+</div>
+
 
     <!-- Firebase SDK (Compat) — loaded before module script -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>

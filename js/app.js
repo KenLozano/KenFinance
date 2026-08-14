@@ -135,6 +135,62 @@ async function saveUserProfile() {
 // ============================================
 // ACCOUNTS / ASSETS
 // ============================================
+function populateAccountSelectors(assets) {
+    const incomeSelect = document.getElementById('income-account');
+    const expenseSelect = document.getElementById('expense-account');
+
+    const selectors = [
+        {
+            element: incomeSelect,
+            placeholder: 'Selecciona una cuenta'
+        },
+        {
+            element: expenseSelect,
+            placeholder: 'Selecciona la cuenta de origen'
+        }
+    ];
+
+    selectors.forEach(({ element, placeholder }) => {
+        if (!element) return;
+
+        const previousValue = element.value;
+
+        element.innerHTML = '';
+
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = assets.length
+            ? placeholder
+            : 'Primero crea una cuenta';
+
+        element.appendChild(placeholderOption);
+
+        assets.forEach(asset => {
+            const option = document.createElement('option');
+
+            option.value = asset.id;
+
+            const currency = asset.currency || 'PEN';
+
+            option.textContent =
+                `${asset.name} · ${currency}`;
+
+            element.appendChild(option);
+        });
+
+        element.disabled = assets.length === 0;
+
+        if (
+            previousValue &&
+            assets.some(asset => asset.id === previousValue)
+        ) {
+            element.value = previousValue;
+        }
+    });
+}
+    let cachedAssets = [];
+    let pendingDeleteAccountId = null;
+
 async function loadAccounts() {
     if (!state.currentUser) return;
 
@@ -142,7 +198,12 @@ async function loadAccounts() {
     if (!list) return;
 
     try {
-        const assets = await dbService.getAssets(state.currentUser.uid);
+        const [assets, allTransactions] = await Promise.all([
+            dbService.getAssets(state.currentUser.uid),
+            dbService.getAllTransactionsOrdered(state.currentUser.uid)
+        ]);
+        cachedAssets = assets;
+        populateAccountSelectors(assets);
 
         list.innerHTML = '';
 
@@ -168,18 +229,71 @@ async function loadAccounts() {
             EUR: '€'
         };
 
-        const balances = await Promise.all(
-            assets.map(asset =>
-                dbService.getAssetBalance(state.currentUser.uid, asset.id)
-            )
-        );
+        // Calcula todos los balances de una sola pasada sobre los movimientos ya traídos
+        const balanceByAssetId = {};
+        allTransactions.forEach(t => {
+            if (!t.assetId) return;
+            const delta = t.type === 'income' ? Number(t.amount) : -Number(t.amount);
+            balanceByAssetId[t.assetId] = (balanceByAssetId[t.assetId] || 0) + delta;
+        });
 
-        assets.forEach((asset, index) => {
-            const balance = balances[index] || 0;
+            const totalByCurrency = {};
+
+    assets.forEach(asset => {
+    const balance = balanceByAssetId[asset.id] || 0;
+    const currency = asset.currency || 'PEN';
+
+    totalByCurrency[currency] =
+        (totalByCurrency[currency] || 0) + balance;
+});
+
+        const totalContainer = document.getElementById('accounts-total');
+
+if (totalContainer) {
+    totalContainer.innerHTML = '';
+
+    const label = document.createElement('span');
+    label.textContent = 'Saldo total';
+
+    const values = document.createElement('div');
+    values.className = 'accounts-total-values';
+
+    const symbols = {
+        PEN: 'S/',
+        USD: '$',
+        EUR: '€'
+    };
+
+    ['PEN', 'USD', 'EUR'].forEach(currency => {
+        const total = totalByCurrency[currency];
+
+        if (total === undefined) return;
+
+        const amount = document.createElement('strong');
+        amount.textContent =
+            `${symbols[currency]} ${fmt(total)}`;
+
+        values.appendChild(amount);
+    });
+
+    // Si todavía no existe ninguna cuenta con saldo
+    if (!values.children.length) {
+        const amount = document.createElement('strong');
+        amount.textContent = 'S/ 0.00';
+        values.appendChild(amount);
+    }
+
+    totalContainer.appendChild(label);
+    totalContainer.appendChild(values);
+}
+
+        assets.forEach((asset) => {
+            const balance = balanceByAssetId[asset.id] || 0;
 
             const card = document.createElement('article');
             card.className = 'account-card';
             card.dataset.id = asset.id;
+            card.dataset.balance = String(balance);
 
             const header = document.createElement('div');
             header.className = 'account-card-header';
@@ -191,8 +305,7 @@ async function loadAccounts() {
 
             const type = document.createElement('p');
             type.className = 'account-card-type';
-            type.textContent =
-                typeLabels[asset.type] || 'Cuenta';
+            type.textContent = typeLabels[asset.type] || 'Cuenta';
 
             info.appendChild(name);
             info.appendChild(type);
@@ -202,23 +315,40 @@ async function loadAccounts() {
             const balanceEl = document.createElement('p');
             balanceEl.className = 'account-card-balance';
 
-            const symbol =
-                currencySymbols[asset.currency] || asset.currency;
-
-            balanceEl.textContent =
-                `${symbol} ${fmt(balance)}`;
+            const symbol = currencySymbols[asset.currency] || asset.currency;
+            balanceEl.textContent = `${symbol} ${fmt(balance)}`;
 
             card.appendChild(header);
             card.appendChild(balanceEl);
+
+            const actions = document.createElement('div');
+actions.className = 'account-card-actions';
+
+const editBtn = document.createElement('button');
+editBtn.type = 'button';
+editBtn.className = 'account-edit-btn';
+editBtn.dataset.id = asset.id;
+editBtn.textContent = 'Editar';
+
+const deleteBtn = document.createElement('button');
+deleteBtn.type = 'button';
+deleteBtn.className = 'account-delete-btn';
+deleteBtn.dataset.id = asset.id;
+deleteBtn.textContent = 'Eliminar';
+
+actions.appendChild(editBtn);
+actions.appendChild(deleteBtn);
+
+card.appendChild(actions);
+
+card.dataset.balance = String(balance);
 
             list.appendChild(card);
         });
 
     } catch (err) {
         console.error('Accounts load error:', err);
-
         list.innerHTML = '';
-
         const error = document.createElement('p');
         error.className = 'empty';
         error.textContent = 'No se pudieron cargar las cuentas.';
@@ -273,10 +403,12 @@ async function loadData() {
             return true;
         };
 
-        const incomeItems = incomeItemsRaw.filter(withinPeriod);
-        const expenseItems = expenseItemsRaw.filter(withinPeriod);
+const incomeItems = incomeItemsRaw.filter(withinPeriod);
+const expenseItems = expenseItemsRaw.filter(withinPeriod);
 
-        const totalIncome = incomeItems.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+const totalIncome = incomeItems
+    .filter(i => !i.isInitialBalance)
+    .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
         const totalExpenses = expenseItems.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
         // Race condition check
@@ -345,6 +477,7 @@ async function deleteItem(id, type) {
         await dbService.deleteTransaction(state.currentUser.uid, type, id);
         showToast('Eliminado ✅', 'success');
         loadData();
+        loadAccounts();
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     }
@@ -359,18 +492,25 @@ async function editItem(id, type) {
         const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
         if (type === 'income') {
-            document.getElementById('income-amount').value = data.amount;
-            document.getElementById('income-date').value = dateStr;
-            document.getElementById('income-note').value = data.note || '';
-            const sourceEl = document.getElementById('income-source');
-            if (sourceEl) sourceEl.value = data.source || 'otros';
-            const accountEl = document.getElementById('income-account');
-            if (accountEl) accountEl.value = data.account || 'efectivo';
-            const tagsEl = document.getElementById('income-tags');
-            if (tagsEl) tagsEl.value = data.tags || '';
-            document.getElementById('income-edit-id').value = id;
-            openModal('modal-income');
-        } else {
+    document.getElementById('income-amount').value = data.amount;
+    document.getElementById('income-date').value = dateStr;
+    document.getElementById('income-note').value = data.note || '';
+
+    const sourceEl = document.getElementById('income-source');
+    if (sourceEl) sourceEl.value = data.source || 'otros';
+
+    const accountEl = document.getElementById('income-account');
+    if (accountEl) {
+        accountEl.value = data.assetId || '';
+    }
+
+    const tagsEl = document.getElementById('income-tags');
+    if (tagsEl) tagsEl.value = data.tags || '';
+
+    document.getElementById('income-edit-id').value = id;
+
+    openModal('modal-income');
+}else {
             document.getElementById('expense-amount').value = data.amount;
             document.getElementById('expense-date').value = dateStr;
             document.getElementById('expense-note').value = data.note || '';
@@ -679,7 +819,7 @@ document.getElementById('btn-income').onclick = () => {
     const source = document.getElementById('income-source');
     if (source) source.value = 'salario';
     const account = document.getElementById('income-account');
-    if (account) account.value = 'efectivo';
+    if (account) account.value = '';
     const tags = document.getElementById('income-tags');
     if (tags) tags.value = '';
     openModal('modal-income');
@@ -695,6 +835,10 @@ document.getElementById('btn-expense').onclick = () => {
     const priority = document.getElementById('expense-priority');
     if (priority) priority.value = 'media';
     openModal('modal-expense');
+    const account =
+    document.getElementById('expense-account');
+    if (account) { account.value = '';
+}
 };
 document.getElementById('btn-new-account')?.addEventListener('click', () => {
     const form = document.getElementById('form-account');
@@ -705,8 +849,184 @@ document.getElementById('btn-new-account')?.addEventListener('click', () => {
     document.getElementById('account-currency').value = 'PEN';
     document.getElementById('modal-account-title').textContent = 'Nueva cuenta';
 
+    const initialBalance =document.getElementById('account-initial-balance');
+
+if (initialBalance) { initialBalance.disabled = false;
+}
     openModal('modal-account');
 });
+
+document.getElementById('accounts-list')?.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.account-edit-btn');
+    const deleteBtn = e.target.closest('.account-delete-btn');
+
+    if (editBtn) {
+        const asset = cachedAssets.find(
+            item => item.id === editBtn.dataset.id
+        );
+
+        if (!asset) {
+            showToast('No se encontró la cuenta', 'error');
+            return;
+        }
+
+        document.getElementById('account-edit-id').value = asset.id;
+        document.getElementById('account-name').value = asset.name || '';
+        document.getElementById('account-type').value = asset.type || '';
+        document.getElementById('account-currency').value =
+            asset.currency || 'PEN';
+
+        const initialBalance =
+            document.getElementById('account-initial-balance');
+
+        if (initialBalance) {
+            initialBalance.value = '';
+            initialBalance.disabled = true;
+        }
+
+        document.getElementById('modal-account-title').textContent =
+            'Editar cuenta';
+
+        openModal('modal-account');
+
+        return;
+    }
+
+    if (deleteBtn) {
+        const card = deleteBtn.closest('.account-card');
+
+        if (!card) return;
+
+        const assetId = deleteBtn.dataset.id;
+
+        const asset = cachedAssets.find(
+            item => item.id === assetId
+        );
+
+        if (!asset) {
+            showToast('No se encontró la cuenta', 'error');
+            return;
+        }
+
+        const balance = Number(card.dataset.balance || 0);
+
+        if (Math.abs(balance) > 0.001) {
+    const message =
+        document.getElementById('account-has-balance-message');
+
+    if (message) {
+        const symbol =
+            asset.currency === 'USD'
+                ? '$'
+                : asset.currency === 'EUR'
+                    ? '€'
+                    : 'S/';
+
+        message.textContent =
+            `La cuenta "${asset.name}" todavía tiene un saldo de ` +
+            `${symbol} ${fmt(balance)}. ` +
+            `Primero retira o transfiere todo el dinero antes de eliminarla.`;
+    }
+
+    openModal('modal-account-has-balance');
+
+    return;
+}
+
+pendingDeleteAccountId = asset.id;
+
+const message =
+    document.getElementById('delete-account-message');
+
+if (message) {
+    message.textContent =
+        `¿Seguro que quieres eliminar "${asset.name}"? ` +
+        `Esta acción no se puede deshacer.`;
+}
+
+openModal('modal-delete-account');
+
+
+        const confirmed = confirm(
+            `¿Eliminar la cuenta "${asset.name}"?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await dbService.archiveAsset(
+    state.currentUser.uid,
+    pendingDeleteAccountId
+);
+
+            showToast('Cuenta eliminada ✅', 'success');
+
+            await loadAccounts();
+
+        } catch (err) {
+            console.error('Account delete error:', err);
+
+            showToast(
+                'No se pudo eliminar la cuenta: ' + err.message,
+                'error'
+            );
+        }
+    }
+});
+
+document
+    .getElementById('btn-confirm-delete-account')
+    ?.addEventListener('click', async () => {
+
+        if (!state.currentUser || !pendingDeleteAccountId) {
+            return;
+        }
+
+        const btn =
+            document.getElementById('btn-confirm-delete-account');
+
+        const originalText = btn?.textContent;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Eliminando...';
+        }
+
+        try {
+    await dbService.archiveAsset(
+        state.currentUser.uid,
+        pendingDeleteAccountId
+    );
+
+    pendingDeleteAccountId = null;
+
+    closeModal('modal-delete-account');
+
+    showToast(
+        'Cuenta eliminada correctamente',
+        'success'
+    );
+
+    await loadAccounts();
+    loadData();
+
+} catch (err) {
+            console.error('Account delete error:', err);
+
+            showToast(
+                'No se pudo eliminar la cuenta: ' + err.message,
+                'error'
+            );
+
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+    });
+
+
 let isSavingAccount = false;
 
 document.getElementById('form-account')?.addEventListener('submit', async (e) => {
@@ -810,7 +1130,8 @@ document.getElementById('form-account')?.addEventListener('submit', async (e) =>
                 source: 'otros',
                 account: legacyAccountMap[type] || 'efectivo',
                 tags: 'saldo-inicial',
-                assetId
+                assetId,
+                isInitialBalance: true
             };
 
             await dbService.saveIncome(
@@ -873,7 +1194,7 @@ document.getElementById('form-income').onsubmit = async (e) => {
     const dateStr = document.getElementById('income-date').value;
     const note = normalizeNote(document.getElementById('income-note').value);
     const source = document.getElementById('income-source')?.value || 'otros';
-    const account = document.getElementById('income-account')?.value || 'efectivo';
+    const assetId = document.getElementById('income-account')?.value || '';
     const tags = normalizeTags(document.getElementById('income-tags')?.value || '');
     const editId = document.getElementById('income-edit-id').value;
 
@@ -895,13 +1216,19 @@ const originalText = submitBtn?.textContent;
 if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Guardando...';
+}if (!assetId) {
+    showToast('Selecciona la cuenta donde ingresará el dinero', 'error');
+    return;
 }
 try {
     const data = {
-        amount,
-        date: firebase.firestore.Timestamp.fromDate(date),
-        note, source, account, tags
-    };
+    amount,
+    date: firebase.firestore.Timestamp.fromDate(date),
+    note,
+    source,
+    tags,
+    assetId
+};
 
     await dbService.saveIncome(state.currentUser.uid, data, editId || null);
 
@@ -914,6 +1241,7 @@ try {
     e.target.reset();
     document.getElementById('income-edit-id').value = '';
     loadData();
+    loadAccounts();
 
 } catch (err) {
     showToast('Error: ' + err.message, 'error');
@@ -941,6 +1269,7 @@ document.getElementById('form-expense').onsubmit = async (e) => {
     amount = Math.round(amount * 100) / 100;
 
     const dateStr = document.getElementById('expense-date').value;
+    const assetId = document.getElementById('expense-account')?.value || '';
     const category = document.querySelector('input[name="category"]:checked')?.value;
     const note = normalizeNote(document.getElementById('expense-note').value);
     const merchant = normalizeText(document.getElementById('expense-merchant')?.value || '', 80);
@@ -959,7 +1288,9 @@ document.getElementById('form-expense').onsubmit = async (e) => {
     if (date > todayEnd) { showToast('No puedes registrar transacciones futuras', 'error'); return; }
     if (!state.isOnline) { showToast('Sin conexión. Conéctate para guardar.', 'error'); return; }
     if (isSavingExpense) return;
-
+    if (!assetId) { showToast('Selecciona la cuenta de donde saldrá el dinero', 'error');
+    return;
+}
 isSavingExpense = true;
 
 const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -971,17 +1302,22 @@ if (submitBtn) {
 }
     try {
         const data = {
-            amount,
-            date: firebase.firestore.Timestamp.fromDate(date),
-            category, note, merchant, method, priority
-        };
-
+    amount,
+    date: firebase.firestore.Timestamp.fromDate(date),
+    category,
+    note,
+    merchant,
+    method,
+    priority,
+    assetId
+};
         await dbService.saveExpense(state.currentUser.uid, data, editId || null);
         showToast(editId ? 'Gasto actualizado ✅' : 'Gasto guardado ✅', 'success');
         closeModal('modal-expense');
         e.target.reset();
         document.getElementById('expense-edit-id').value = '';
         loadData();
+        loadAccounts();
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     }finally {

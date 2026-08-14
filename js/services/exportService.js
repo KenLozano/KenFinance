@@ -59,7 +59,7 @@ async function getFilteredDataForExport(uid, period) {
     const txs = await getAllTransactionsOrdered(uid);
     const selected = txs.filter((t) => inPeriod(txDate(t), period));
     return {
-        income: selected.filter(t => t.type === 'income'),
+        income: selected.filter(t => t.type === 'income' && !t.isInitialBalance),
         expenses: selected.filter(t => t.type === 'expense')
     };
 }
@@ -204,9 +204,14 @@ export async function exportToPDF(type) {
         let totalInc = 0;
         let totalExp = 0;
         transactions.forEach(t => {
-            if (t.type === 'income') totalInc += safeNum(t.amount);
-            else totalExp += safeNum(t.amount);
-        });
+    if (t.type === 'income') {
+        if (!t.isInitialBalance) {
+            totalInc += safeNum(t.amount);
+        }
+    } else {
+        totalExp += safeNum(t.amount);
+    }
+});
         const bal = totalInc - totalExp;
 
         doc.setFontSize(20);

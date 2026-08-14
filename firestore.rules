@@ -71,8 +71,7 @@ service cloud.firestore {
           request.resource.data.monthlyTarget <= 999999999
         ));
     }
-
-function isValidIncomeData() {
+    function isValidIncomeData() {
       return hasRequiredIncomeFields() &&
         isValidAmount(request.resource.data.amount) &&
         isValidDate(request.resource.data.date) &&
@@ -81,7 +80,8 @@ function isValidIncomeData() {
         isValidOptionalText('account', 40) &&
         isValidOptionalText('tags', 100) &&
         (!('assetId' in request.resource.data) || request.resource.data.assetId is string) &&
-        (!('goalId' in request.resource.data) || request.resource.data.goalId is string);
+        (!('goalId' in request.resource.data) || request.resource.data.goalId is string) &&
+        (!('isInitialBalance' in request.resource.data) || request.resource.data.isInitialBalance is bool);
     }
 
     function isValidExpenseData() {
@@ -110,7 +110,11 @@ function isValidIncomeData() {
         request.resource.data.name.size() > 0 &&
         request.resource.data.name.size() <= 60 &&
         request.resource.data.type in ['bank_account', 'wallet', 'cash', 'credit_card', 'crypto'] &&
-        request.resource.data.currency in ['PEN', 'USD', 'EUR'];
+        request.resource.data.currency in ['PEN', 'USD', 'EUR']  &&
+        (!('active' in request.resource.data) ||
+        request.resource.data.active is bool) &&
+        (!('archivedAt' in request.resource.data) ||
+        request.resource.data.archivedAt is timestamp)
     }
 
     function isValidGoalData() {

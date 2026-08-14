@@ -184,9 +184,11 @@ export async function getAllTransactionsOrdered(uid) {
  */
 export async function getAssets(uid) {
     const snap = await db.collection('users').doc(uid).collection('assets').get();
-    return snap.docs.map(doc => normalizeTimestamps({ id: doc.id, ...doc.data() }));
-}
 
+    return snap.docs
+        .map(doc => normalizeTimestamps({ id: doc.id, ...doc.data() }))
+        .filter(asset => asset.active !== false);
+}
 /**
  * Guarda o actualiza un asset.
  */
@@ -200,10 +202,10 @@ export async function saveAsset(uid, data, editId = null) {
 
     if (editId) {
         await colRef.doc(editId).update(payload);
-
         return editId;
     }
 
+    payload.active = true;
     payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
     const docRef = await colRef.add(payload);
@@ -212,10 +214,19 @@ export async function saveAsset(uid, data, editId = null) {
 }
 
 /**
- * Elimina un asset.
+ * Elimina un asset / el asset solo se archiva.
  */
-export async function deleteAsset(uid, assetId) {
-    await db.collection('users').doc(uid).collection('assets').doc(assetId).delete();
+export async function archiveAsset(uid, assetId) {
+    await db
+        .collection('users')
+        .doc(uid)
+        .collection('assets')
+        .doc(assetId)
+        .update({
+            active: false,
+            archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 }
 
 /**
