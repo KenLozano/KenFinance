@@ -1641,9 +1641,6 @@ textarea:focus-visible {
     min-height: 50px;
 }
 
-.actions #btn-duplicate-expense {
-    display: none;
-}
 
     .accounts-header {
         align-items: stretch;

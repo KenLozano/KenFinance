@@ -423,7 +423,7 @@ const totalIncome = incomeItems
 
         const allInPeriod = [...incomeItems, ...expenseItems];
         const all = sortTransactions(allInPeriod, state.currentSort);
-        state.latestExpenseItem = sortTransactions(expenseItems, 'date_desc')[0] || null;
+        
 
         // Search & category filter
         const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
@@ -944,33 +944,9 @@ if (message) {
         `Esta acción no se puede deshacer.`;
 }
 
-openModal('modal-delete-account');
+        openModal('modal-delete-account');
 
-
-        const confirmed = confirm(
-            `¿Eliminar la cuenta "${asset.name}"?`
-        );
-
-        if (!confirmed) return;
-
-        try {
-            await dbService.archiveAsset(
-    state.currentUser.uid,
-    pendingDeleteAccountId
-);
-
-            showToast('Cuenta eliminada ✅', 'success');
-
-            await loadAccounts();
-
-        } catch (err) {
-            console.error('Account delete error:', err);
-
-            showToast(
-                'No se pudo eliminar la cuenta: ' + err.message,
-                'error'
-            );
-        }
+return;
     }
 });
 
@@ -1205,8 +1181,17 @@ document.getElementById('form-income').onsubmit = async (e) => {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
     if (date > todayEnd) { showToast('No puedes registrar transacciones futuras', 'error'); return; }
-    if (!state.isOnline) { showToast('Sin conexión. Conéctate para guardar.', 'error'); return; }
-    if (isSavingIncome) return;
+   if (!state.isOnline) {
+    showToast('Sin conexión. Conéctate para guardar.', 'error');
+    return;
+}
+
+if (!assetId) {
+    showToast('Selecciona la cuenta donde ingresará el dinero', 'error');
+    return;
+}
+
+if (isSavingIncome) return;
 
 isSavingIncome = true;
 
@@ -1216,10 +1201,8 @@ const originalText = submitBtn?.textContent;
 if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Guardando...';
-}if (!assetId) {
-    showToast('Selecciona la cuenta donde ingresará el dinero', 'error');
-    return;
 }
+
 try {
     const data = {
     amount,

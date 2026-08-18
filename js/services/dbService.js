@@ -133,6 +133,10 @@ export async function saveExpense(uid, data, editId = null) {
  * Duplica un gasto.
  */
 export async function addDuplicateExpense(uid, expenseItem) {
+    if (!expenseItem.assetId) {
+        throw new Error('El gasto original no tiene una cuenta asociada');
+    }
+
     const duplicateData = {
         amount: expenseItem.amount,
         category: expenseItem.category || 'yellow',
@@ -140,10 +144,15 @@ export async function addDuplicateExpense(uid, expenseItem) {
         merchant: normalizeText(expenseItem.merchant || '', 80),
         method: expenseItem.method || 'efectivo',
         priority: expenseItem.priority || 'media',
+        assetId: expenseItem.assetId,
         date: firebase.firestore.Timestamp.fromDate(new Date()),
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    await db.collection('transactions').doc(uid).collection('expenses').add(duplicateData);
+
+    await db.collection('transactions')
+        .doc(uid)
+        .collection('expenses')
+        .add(duplicateData);
 }
 
 /**
