@@ -8,6 +8,16 @@
 ![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+# 💰 KenFinance
+
+> **Gestión de finanzas personales simple, visual y organizada.**
+
+![Estado](https://img.shields.io/badge/Estado-Release%20Candidate-yellow)
+![Versión](https://img.shields.io/badge/Versión-1.0.0-blue)
+![PWA](https://img.shields.io/badge/PWA-Instalable-blueviolet)
+![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-orange)
+![Deploy](https://img.shields.io/badge/Deploy-Vercel-black)
+![Licencia](https://img.shields.io/badge/Licencia-MIT-green)
 ---
 
 ## 📌 Descripción
