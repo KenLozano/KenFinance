@@ -1,0 +1,110 @@
+.flow-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+}
+
+.flow-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 4px 0 0;
+    font-size: 1.2rem;
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  opacity: 0.55;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  font-size: 0.8rem;
+}
+
+.income-label {
+  color: var(--ion-color-success);
+}
+
+.expense-label {
+  color: var(--ion-color-danger);
+}
+
+.chart-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.flow-chart {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  min-height: 190px;
+}
+
+.axis {
+  stroke:
+    rgba(127, 127, 127, 0.2);
+
+  stroke-width: 1;
+}
+
+.income-line,
+.expense-line {
+  stroke-width: 4;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.income-line {
+  stroke: var(--ion-color-success);
+}
+
+.expense-line {
+  stroke: var(--ion-color-danger);
+}
+
+.empty-message {
+  margin: 30px 0;
+
+  text-align: center;
+
+  opacity: 0.55;
+}
+
+@media (max-width: 600px) {
+  .flow-header {
+    flex-direction: column;
+  }
+
+  .legend {
+    justify-content: flex-start;
+  }
+}

@@ -34,6 +34,8 @@
         </span>
       </header>
 
+      <!-- BALANCE DIARIO + SALDO TOTAL -->
+
       <section class="primary-grid">
 
         <article class="daily-card">
@@ -48,34 +50,112 @@
             </div>
           </header>
 
-          <strong
-            class="daily-balance"
-            [class.negative]="todayBalance() < 0"
-          >
-            {{ todayBalance() >= 0 ? '+' : '-' }}
-            S/
-            {{ Math.abs(todayBalance()).toFixed(2) }}
-          </strong>
+          @if (
+            dailySummary()[profile()?.currency || 'PEN'];
+            as baseSummary
+          ) {
 
-          <div class="daily-stats">
+            <strong
+              class="daily-balance"
+              [class.negative]="
+                baseSummary.balance < 0
+              "
+            >
+              {{ baseSummary.balance >= 0 ? '+' : '-' }}
 
-            <div class="stat">
-              <span>Ingresos</span>
+              {{
+                getCurrencySymbol(
+                  profile()?.currency || 'PEN'
+                )
+              }}
 
-              <strong class="positive">
-                + S/
-                {{ todayIncome().toFixed(2) }}
-              </strong>
+              {{
+                Math.abs(
+                  baseSummary.balance
+                ).toFixed(2)
+              }}
+            </strong>
+
+            <div class="daily-stats">
+
+              <div class="stat">
+                <span>Ingresos</span>
+
+                <strong class="positive">
+                  +
+                  {{
+                    getCurrencySymbol(
+                      profile()?.currency || 'PEN'
+                    )
+                  }}
+
+                  {{
+                    baseSummary.income.toFixed(2)
+                  }}
+                </strong>
+              </div>
+
+              <div class="stat">
+                <span>Gastos</span>
+
+                <strong class="negative">
+                  -
+                  {{
+                    getCurrencySymbol(
+                      profile()?.currency || 'PEN'
+                    )
+                  }}
+
+                  {{
+                    baseSummary.expenses.toFixed(2)
+                  }}
+                </strong>
+              </div>
+
             </div>
 
-            <div class="stat">
-              <span>Gastos</span>
+          } @else {
 
-              <strong class="negative">
-                - S/
-                {{ todayExpenses().toFixed(2) }}
-              </strong>
-            </div>
+            <strong class="daily-balance">
+              {{
+                getCurrencySymbol(
+                  profile()?.currency || 'PEN'
+                )
+              }}
+              0.00
+            </strong>
+
+            <p class="empty-hint">
+              Aún no tienes movimientos hoy.
+            </p>
+
+          }
+
+          <div class="secondary-currencies">
+
+            @for (
+              currency of currencies;
+              track currency
+            ) {
+
+              @if (
+                currency !==
+                  (profile()?.currency || 'PEN') &&
+                dailySummary()[currency];
+                as summary
+              ) {
+
+                <span>
+                  {{ currency }}:
+                  {{
+                    getCurrencySymbol(currency)
+                  }}
+                  {{ summary.balance.toFixed(2) }}
+                </span>
+
+              }
+
+            }
 
           </div>
 
@@ -83,7 +163,6 @@
 
             <ion-button
               type="button"
-              fill="solid"
               disabled
             >
               + Ingreso
@@ -98,10 +177,6 @@
             </ion-button>
 
           </div>
-
-          <small class="pending-note">
-            Registro rápido de movimientos próximamente.
-          </small>
 
         </article>
 
@@ -119,55 +194,33 @@
 
           <div class="currency-list">
 
-            @if (
-              totalsByCurrency()['PEN']
-              !== undefined
+            @for (
+              currency of currencies;
+              track currency
             ) {
-              <div class="currency-row">
-                <span>PEN</span>
 
-                <strong>
-                  S/
-                  {{
-                    totalsByCurrency()['PEN']
-                      .toFixed(2)
-                  }}
-                </strong>
-              </div>
-            }
+              @if (
+                totalsByCurrency()[currency]
+                !== undefined
+              ) {
 
-            @if (
-              totalsByCurrency()['USD']
-              !== undefined
-            ) {
-              <div class="currency-row">
-                <span>USD</span>
+                <div class="currency-row">
+                  <span>{{ currency }}</span>
 
-                <strong>
-                  $
-                  {{
-                    totalsByCurrency()['USD']
-                      .toFixed(2)
-                  }}
-                </strong>
-              </div>
-            }
+                  <strong>
+                    {{
+                      getCurrencySymbol(currency)
+                    }}
 
-            @if (
-              totalsByCurrency()['EUR']
-              !== undefined
-            ) {
-              <div class="currency-row">
-                <span>EUR</span>
+                    {{
+                      totalsByCurrency()[currency]
+                        ?.toFixed(2)
+                    }}
+                  </strong>
+                </div>
 
-                <strong>
-                  €
-                  {{
-                    totalsByCurrency()['EUR']
-                      .toFixed(2)
-                  }}
-                </strong>
-              </div>
+              }
+
             }
 
             @if (accounts().length === 0) {
@@ -190,8 +243,276 @@
 
       </section>
 
+      <!-- RESUMEN DEL MES -->
+
+      <section class="month-section">
+
+        <header class="section-header">
+          <div>
+            <span class="eyebrow">
+              ESTE MES
+            </span>
+
+            <h2>Resumen del mes</h2>
+          </div>
+        </header>
+
+        @if (
+          monthlySummary()[
+            profile()?.currency || 'PEN'
+          ];
+          as month
+        ) {
+
+          <div class="month-grid">
+
+            <article class="metric-card">
+              <span>Ingresos</span>
+
+              <strong class="positive">
+                {{
+                  getCurrencySymbol(
+                    profile()?.currency || 'PEN'
+                  )
+                }}
+                {{ month.income.toFixed(2) }}
+              </strong>
+            </article>
+
+            <article class="metric-card">
+              <span>Gastos</span>
+
+              <strong class="negative">
+                {{
+                  getCurrencySymbol(
+                    profile()?.currency || 'PEN'
+                  )
+                }}
+                {{ month.expenses.toFixed(2) }}
+              </strong>
+            </article>
+
+            <article class="metric-card">
+              <span>Ahorro</span>
+
+              <strong
+                [class.positive]="
+                  month.balance >= 0
+                "
+                [class.negative]="
+                  month.balance < 0
+                "
+              >
+                {{
+                  getCurrencySymbol(
+                    profile()?.currency || 'PEN'
+                  )
+                }}
+                {{ month.balance.toFixed(2) }}
+              </strong>
+            </article>
+
+            <article class="metric-card">
+              <span>Tasa de ahorro</span>
+
+              <strong>
+                @if (
+                  month.savingsRate !== null
+                ) {
+                  {{
+                    month.savingsRate.toFixed(1)
+                  }}%
+                } @else {
+                  —
+                }
+              </strong>
+            </article>
+
+          </div>
+
+        } @else {
+
+          <p class="empty-hint">
+            Todavía no tienes movimientos este mes.
+          </p>
+
+        }
+
+      </section>
+
+      <section class="flow-section">
+
+  <app-monthly-flow
+    [points]="monthlyFlow()"
+    [currencySymbol]="
+      getCurrencySymbol(
+        profile()?.currency || 'PEN'
+      )
+    "
+  ></app-monthly-flow>
+
+</section>
+
+      <!-- ÚLTIMOS MOVIMIENTOS -->
+
+      <section class="recent-section">
+
+        <header class="section-header">
+
+          <div>
+            <span class="eyebrow">
+              ACTIVIDAD
+            </span>
+
+            <h2>Últimos movimientos</h2>
+          </div>
+
+          <ion-button
+            fill="clear"
+            disabled
+          >
+            Ver más →
+          </ion-button>
+
+        </header>
+
+        @if (
+          recentTransactions().length > 0
+        ) {
+
+          <div class="transaction-list">
+
+            @for (
+              transaction
+              of recentTransactions();
+              track transaction.id
+            ) {
+
+              <article class="transaction-row">
+
+                <div class="transaction-info">
+
+                  <strong>
+                    {{
+                      transaction.note ||
+                      (
+                        transaction.type ===
+                        'income'
+                          ? 'Ingreso'
+                          : 'Gasto'
+                      )
+                    }}
+                  </strong>
+
+                  <span>
+                    {{
+                      getTransactionAccountName(
+                        transaction
+                      )
+                    }}
+                    ·
+                    {{
+                      formatTransactionDate(
+                        transaction.date
+                      )
+                    }}
+                  </span>
+
+                </div>
+
+                <strong
+                  class="transaction-amount"
+                  [class.positive]="
+                    transaction.type ===
+                    'income'
+                  "
+                  [class.negative]="
+                    transaction.type ===
+                    'expense'
+                  "
+                >
+                  {{
+                    transaction.type ===
+                    'income'
+                      ? '+'
+                      : '-'
+                  }}
+
+                  {{
+                    getCurrencySymbol(
+                      getTransactionCurrency(
+                        transaction
+                      )
+                    )
+                  }}
+
+                  {{
+                    transaction.amount.toFixed(2)
+                  }}
+                </strong>
+
+              </article>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <p class="empty-hint">
+            No tienes movimientos registrados.
+          </p>
+
+        }
+        <section class="bottom-grid">
+
+  <app-plan-summary
+    [incomeTarget]="
+      plan().incomeTarget
+    "
+    [expenseLimit]="
+      plan().expenseLimit
+    "
+    [currentIncome]="
+      monthlySummary()[
+        profile()?.currency || 'PEN'
+      ]?.income || 0
+    "
+    [currentExpenses]="
+      monthlySummary()[
+        profile()?.currency || 'PEN'
+      ]?.expenses || 0
+    "
+    [currencySymbol]="
+      getCurrencySymbol(
+        profile()?.currency || 'PEN'
+      )
+    "
+  ></app-plan-summary>
+
+  @if (
+    recommendation();
+    as recommendationData
+  ) {
+
+    <app-recommendation-card
+      [message]="
+        recommendationData.message
+      "
+      [tone]="
+        recommendationData.tone
+      "
+    ></app-recommendation-card>
+
+  }
+
+</section>
+
+      </section>
+
     }
 
   </main>
+
 
 </ion-content>

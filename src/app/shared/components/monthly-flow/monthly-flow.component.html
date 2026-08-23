@@ -1,0 +1,83 @@
+<section class="flow-card">
+
+  <header class="flow-header">
+    <div>
+      <span class="eyebrow">
+        EVOLUCIÓN
+      </span>
+
+      <h2>Flujo del mes</h2>
+    </div>
+
+    @if (lastPoint; as current) {
+      <div class="legend">
+        <span class="income-label">
+          Ingresos
+          {{ currencySymbol }}
+          {{ current.income.toFixed(2) }}
+        </span>
+
+        <span class="expense-label">
+          Gastos
+          {{ currencySymbol }}
+          {{ current.expenses.toFixed(2) }}
+        </span>
+      </div>
+    }
+  </header>
+
+  @if (points.length > 0) {
+
+    <div class="chart-wrapper">
+
+      <svg
+        class="flow-chart"
+        [attr.viewBox]="
+          '0 0 ' + width + ' ' + height
+        "
+        role="img"
+        aria-label="Evolución acumulada de ingresos y gastos del mes"
+      >
+
+        <line
+          [attr.x1]="paddingLeft"
+          [attr.y1]="height - paddingBottom"
+          [attr.x2]="width - paddingRight"
+          [attr.y2]="height - paddingBottom"
+          class="axis"
+        ></line>
+
+        <line
+          [attr.x1]="paddingLeft"
+          [attr.y1]="paddingTop"
+          [attr.x2]="paddingLeft"
+          [attr.y2]="height - paddingBottom"
+          class="axis"
+        ></line>
+
+        <polyline
+          [attr.points]="incomePoints"
+          class="income-line"
+          fill="none"
+        ></polyline>
+
+        <polyline
+          [attr.points]="expensePoints"
+          class="expense-line"
+          fill="none"
+        ></polyline>
+
+      </svg>
+
+    </div>
+
+  } @else {
+
+    <p class="empty-message">
+      Todavía no hay movimientos suficientes
+      para mostrar el flujo del mes.
+    </p>
+
+  }
+
+</section>

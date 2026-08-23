@@ -27,14 +27,44 @@ import {
 
 import {
   Account,
+  CurrencyCode,
   UserProfile,
 } from '../../shared/models';
 
 import {
   fromMinorUnits,
-  subtractMoney,
-  sumMoney,
+  toMinorUnits,
 } from '../../shared/utils/money';
+
+import { PlanService } from '../../core/services/plan';
+
+import {
+  FinancialPlan,
+} from '../../shared/models';
+
+import {
+  MonthlyFlowComponent,
+  MonthlyFlowPoint,
+} from '../../shared/components/monthly-flow/monthly-flow.component';
+
+import {
+  PlanSummaryComponent,
+} from '../../shared/components/plan-summary/plan-summary.component';
+
+import {
+  RecommendationCardComponent,
+  RecommendationTone,
+} from '../../shared/components/recommendation-card/recommendation-card.component';
+
+interface PeriodSummary {
+  income: number;
+  expenses: number;
+  balance: number;
+  savingsRate: number | null;
+}
+
+type SummaryByCurrency =
+  Partial<Record<CurrencyCode, PeriodSummary>>;
 
 @Component({
   selector: 'app-home',
@@ -47,6 +77,9 @@ import {
     IonTitle,
     IonContent,
     IonButton,
+    MonthlyFlowComponent,
+PlanSummaryComponent,
+RecommendationCardComponent,
   ],
 })
 export class HomePage implements OnInit {
@@ -64,120 +97,354 @@ export class HomePage implements OnInit {
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
 
-  readonly todayIncome = computed(() =>
-  sumMoney(
-    this.transactions()
-      .filter(
+  readonly currencies: CurrencyCode[] = [
+    'PEN',
+    'USD',
+    'EUR',
+  ];
+
+  readonly dailySummary = computed<SummaryByCurrency>(
+    () =>
+      this.buildSummary(
         (transaction) =>
-          transaction.type === 'income' &&
-          !transaction.isInitialBalance &&
           this.isToday(transaction.date),
-      )
-      .map(
-        (transaction) =>
-          transaction.amount,
       ),
-  ),
-);
+  );
 
-  readonly todayExpenses = computed(() =>
-  sumMoney(
-    this.transactions()
-      .filter(
+  readonly monthlySummary = computed<SummaryByCurrency>(
+    () =>
+      this.buildSummary(
         (transaction) =>
-          transaction.type === 'expense' &&
-          this.isToday(transaction.date),
-      )
-      .map(
-        (transaction) =>
-          transaction.amount,
+          this.isCurrentMonth(transaction.date),
       ),
-  ),
-);
+  );
+  readonly monthlyFlow = computed<
+  MonthlyFlowPoint[]
+>(() => {
+  const baseCurrency =
+    this.profile()?.currency ?? 'PEN';
 
-  readonly todayBalance = computed(() =>
-  subtractMoney(
-    this.todayIncome(),
-    this.todayExpenses(),
-  ),
-);
-  readonly totalsByCurrency = computed(() => {
-  const totalsMinorUnits: Record<string, number> = {};
+  const today = new Date();
 
-  for (const account of this.accounts()) {
-    const balanceMinorUnits =
-      this.transactionService
-        .calculateAccountBalanceMinorUnits(
-          this.transactions(),
-          account.id,
-        );
+  const currentYear =
+    today.getFullYear();
 
-    totalsMinorUnits[account.currency] =
-      (totalsMinorUnits[account.currency] ?? 0) +
-      balanceMinorUnits;
+  const currentMonth =
+    today.getMonth();
+
+  const currentDay =
+    today.getDate();
+
+  const dailyMinorUnits =
+    new Map<
+      number,
+      {
+        income: number;
+        expenses: number;
+      }
+    >();
+
+  for (let day = 1; day <= currentDay; day++) {
+    dailyMinorUnits.set(
+      day,
+      {
+        income: 0,
+        expenses: 0,
+      },
+    );
   }
 
-  const totals: Record<string, number> = {};
+  for (const transaction of this.transactions()) {
+    const date =
+      transaction.date;
+
+    if (
+      date.getFullYear() !== currentYear ||
+      date.getMonth() !== currentMonth
+    ) {
+      continue;
+    }
+
+    if (
+      this.getTransactionCurrency(
+        transaction,
+      ) !== baseCurrency
+    ) {
+      continue;
+    }
+
+    if (
+      transaction.type === 'income' &&
+      transaction.isInitialBalance
+    ) {
+      continue;
+    }
+
+    const day =
+      date.getDate();
+
+    const bucket =
+      dailyMinorUnits.get(day);
+
+    if (!bucket) {
+      continue;
+    }
+
+    const amount =
+      toMinorUnits(
+        transaction.amount,
+      );
+
+    if (
+      transaction.type === 'income'
+    ) {
+      bucket.income += amount;
+    } else {
+      bucket.expenses += amount;
+    }
+  }
+
+  let accumulatedIncome = 0;
+  let accumulatedExpenses = 0;
+
+  const points: MonthlyFlowPoint[] = [];
 
   for (
-    const [currency, amountMinorUnits]
-    of Object.entries(totalsMinorUnits)
+    let day = 1;
+    day <= currentDay;
+    day++
   ) {
-    totals[currency] =
-      fromMinorUnits(amountMinorUnits);
+    const bucket =
+      dailyMinorUnits.get(day);
+
+    if (!bucket) {
+      continue;
+    }
+
+    accumulatedIncome +=
+      bucket.income;
+
+    accumulatedExpenses +=
+      bucket.expenses;
+
+    points.push({
+      day,
+      income:
+        fromMinorUnits(
+          accumulatedIncome,
+        ),
+      expenses:
+        fromMinorUnits(
+          accumulatedExpenses,
+        ),
+    });
   }
 
-  return totals;
+  return points;
 });
+  readonly totalsByCurrency = computed(() => {
+    const totalsMinorUnits: Record<string, number> = {};
+
+    for (const account of this.accounts()) {
+      const balanceMinorUnits =
+        this.transactionService
+          .calculateAccountBalanceMinorUnits(
+            this.transactions(),
+            account.id,
+          );
+
+      totalsMinorUnits[account.currency] =
+        (totalsMinorUnits[account.currency] ?? 0) +
+        balanceMinorUnits;
+    }
+
+    
+
+    const totals: Partial<
+      Record<CurrencyCode, number>
+    > = {};
+
+    for (
+      const [currency, amountMinorUnits]
+      of Object.entries(totalsMinorUnits)
+    ) {
+      totals[currency as CurrencyCode] =
+        fromMinorUnits(amountMinorUnits);
+    }
+
+    return totals;
+  });
+
+  readonly recentTransactions = computed(() =>
+    this.transactions().slice(0, 5),
+  );
 
   async ngOnInit(): Promise<void> {
     await this.loadHome();
   }
 
   private async loadHome(): Promise<void> {
-    const user = this.authService.currentUser;
+  const user = this.authService.currentUser;
 
-    if (!user) {
-      this.errorMessage.set(
-        'No se encontró una sesión activa.',
-      );
+  if (!user) {
+    this.errorMessage.set(
+      'No se encontró una sesión activa.',
+    );
 
-      this.isLoading.set(false);
-      return;
+    this.isLoading.set(false);
+    return;
+  }
+
+  const uid = user.uid;
+
+  try {
+    const [
+      profile,
+      accounts,
+      transactions,
+      plan,
+    ] = await Promise.all([
+      this.profileService.getProfile(uid),
+      this.accountService.getAccounts(uid),
+      this.transactionService.getAllTransactions(uid),
+      this.planService.getPlan(uid),
+    ]);
+
+    this.profile.set(profile);
+    this.accounts.set(accounts);
+    this.transactions.set(transactions);
+    this.plan.set(plan);
+  } catch (error) {
+    console.error(
+      'Home load error:',
+      error,
+    );
+
+    this.errorMessage.set(
+      'No se pudo cargar la información financiera.',
+    );
+  } finally {
+    this.isLoading.set(false);
+  }
+}
+
+  private buildSummary(
+    predicate: (transaction: Transaction) => boolean,
+  ): SummaryByCurrency {
+    const minorUnits: Record<
+      CurrencyCode,
+      {
+        income: number;
+        expenses: number;
+      }
+    > = {
+      PEN: {
+        income: 0,
+        expenses: 0,
+      },
+      USD: {
+        income: 0,
+        expenses: 0,
+      },
+      EUR: {
+        income: 0,
+        expenses: 0,
+      },
+    };
+
+    for (const transaction of this.transactions()) {
+      if (!predicate(transaction)) {
+        continue;
+      }
+
+      if (
+        transaction.type === 'income' &&
+        transaction.isInitialBalance
+      ) {
+        continue;
+      }
+
+      const currency =
+        this.getTransactionCurrency(transaction);
+
+      const amountMinorUnits =
+        toMinorUnits(transaction.amount);
+
+      if (transaction.type === 'income') {
+        minorUnits[currency].income +=
+          amountMinorUnits;
+      } else {
+        minorUnits[currency].expenses +=
+          amountMinorUnits;
+      }
     }
 
-    try {
-      const [
-        profile,
-        accounts,
-        transactions,
-      ] = await Promise.all([
-        this.profileService.getProfile(user.uid),
-        this.accountService.getAccounts(user.uid),
-        this.transactionService.getAllTransactions(
-          user.uid,
-        ),
-      ]);
+    const result: SummaryByCurrency = {};
 
-      this.profile.set(profile);
-      this.accounts.set(accounts);
-      this.transactions.set(transactions);
-    } catch (error) {
-      console.error(
-        'Home load error:',
-        error,
-      );
+    for (const currency of this.currencies) {
+      const incomeMinorUnits =
+        minorUnits[currency].income;
 
-      this.errorMessage.set(
-        'No se pudo cargar la información financiera.',
-      );
-    } finally {
-      this.isLoading.set(false);
+      const expenseMinorUnits =
+        minorUnits[currency].expenses;
+
+      if (
+        incomeMinorUnits === 0 &&
+        expenseMinorUnits === 0
+      ) {
+        continue;
+      }
+
+      const balanceMinorUnits =
+        incomeMinorUnits - expenseMinorUnits;
+
+      const income =
+        fromMinorUnits(incomeMinorUnits);
+
+      const expenses =
+        fromMinorUnits(expenseMinorUnits);
+
+      const balance =
+        fromMinorUnits(balanceMinorUnits);
+
+      const savingsRate =
+        incomeMinorUnits > 0
+          ? (
+              balanceMinorUnits /
+              incomeMinorUnits
+            ) * 100
+          : null;
+
+      result[currency] = {
+        income,
+        expenses,
+        balance,
+        savingsRate,
+      };
     }
+
+    return result;
+  }
+
+   getTransactionCurrency(
+    transaction: Transaction,
+  ): CurrencyCode {
+    const account = this.accounts().find(
+      (item) =>
+        item.id === transaction.assetId,
+    );
+
+    if (account) {
+      return account.currency;
+    }
+
+    // Compatibilidad con movimientos antiguos
+    // que pudieran no tener assetId.
+    return this.profile()?.currency ?? 'PEN';
   }
 
   getCurrencySymbol(
-    currency: string,
+    currency: CurrencyCode | string,
   ): string {
     switch (currency) {
       case 'USD':
@@ -192,16 +459,124 @@ export class HomePage implements OnInit {
     }
   }
 
+  getTransactionAccountName(
+    transaction: Transaction,
+  ): string {
+    return (
+      this.accounts().find(
+        (account) =>
+          account.id === transaction.assetId,
+      )?.name ??
+      'Cuenta no identificada'
+    );
+  }
+
+  formatTransactionDate(
+    date: Date,
+  ): string {
+    return new Intl.DateTimeFormat(
+      'es-PE',
+      {
+        day: '2-digit',
+        month: 'short',
+      },
+    ).format(date);
+  }
+
   private isToday(date: Date): boolean {
     const today = new Date();
 
     return (
-      date.getFullYear() ===
-        today.getFullYear() &&
-      date.getMonth() ===
-        today.getMonth() &&
-      date.getDate() ===
-        today.getDate()
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     );
   }
+
+  private isCurrentMonth(date: Date): boolean {
+    const today = new Date();
+
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth()
+    );
+  }
+  private readonly planService =
+  inject(PlanService);
+
+  readonly plan =
+  signal<FinancialPlan>({
+    incomeTarget: 0,
+    expenseLimit: 0,
+  });
+
+  readonly recommendation = computed(() => {
+  const currency =
+    this.profile()?.currency ?? 'PEN';
+
+  const month =
+    this.monthlySummary()[currency];
+
+  if (!month) {
+    return null;
+  }
+
+  const plan =
+    this.plan();
+
+  if (
+    plan.expenseLimit > 0 &&
+    month.expenses >
+      plan.expenseLimit
+  ) {
+    return {
+      message:
+        'Superaste el límite de gastos configurado para este mes.',
+      tone: 'danger' as RecommendationTone,
+    };
+  }
+
+  if (
+    plan.expenseLimit > 0 &&
+    month.expenses >=
+      plan.expenseLimit * 0.8
+  ) {
+    return {
+      message:
+        'Ya utilizaste al menos el 80% de tu límite mensual de gastos.',
+      tone: 'warning' as RecommendationTone,
+    };
+  }
+
+  if (
+    month.savingsRate !== null &&
+    month.savingsRate < 0
+  ) {
+    return {
+      message:
+        'Tus gastos del mes superan tus ingresos. Revisa las categorías con mayor consumo.',
+      tone: 'warning' as RecommendationTone,
+    };
+  }
+
+  if (
+    plan.incomeTarget > 0 &&
+    month.income >=
+      plan.incomeTarget &&
+    (
+      plan.expenseLimit <= 0 ||
+      month.expenses <=
+        plan.expenseLimit
+    )
+  ) {
+    return {
+      message:
+        'Alcanzaste tu objetivo mensual de ingresos y mantienes tus gastos dentro del plan.',
+      tone: 'success' as RecommendationTone,
+    };
+  }
+
+  return null;
+});
+
 }

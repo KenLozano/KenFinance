@@ -1,0 +1,40 @@
+@if (message) {
+
+  <aside
+    class="recommendation-card"
+    [class.warning]="tone === 'warning'"
+    [class.danger]="tone === 'danger'"
+    [class.success]="tone === 'success'"
+  >
+
+    <div class="recommendation-icon">
+      @switch (tone) {
+
+        @case ('danger') {
+          !
+        }
+
+        @case ('warning') {
+          !
+        }
+
+        @case ('success') {
+          ✓
+        }
+
+        @default {
+          i
+        }
+
+      }
+    </div>
+
+    <div>
+      <span>Recomendación</span>
+
+      <p>{{ message }}</p>
+    </div>
+
+  </aside>
+
+}

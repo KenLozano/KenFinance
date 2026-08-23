@@ -1,0 +1,88 @@
+<section class="plan-card">
+
+  <header>
+    <span class="eyebrow">
+      PLAN
+    </span>
+
+    <h2>Plan del mes</h2>
+  </header>
+
+  @if (hasPlan) {
+
+    @if (incomeTarget > 0) {
+
+      <div class="plan-item">
+
+        <div class="plan-row">
+          <span>Objetivo de ingresos</span>
+
+          <strong>
+            {{ currencySymbol }}
+            {{ currentIncome.toFixed(2) }}
+            /
+            {{ currencySymbol }}
+            {{ incomeTarget.toFixed(2) }}
+          </strong>
+        </div>
+
+        <div class="progress-track">
+          <div
+            class="progress-bar income"
+            [style.width.%]="incomeBarWidth"
+          ></div>
+        </div>
+
+        <small>
+          {{ incomeProgress.toFixed(0) }}%
+          del objetivo
+        </small>
+
+      </div>
+
+    }
+
+    @if (expenseLimit > 0) {
+
+      <div class="plan-item">
+
+        <div class="plan-row">
+          <span>Límite de gastos</span>
+
+          <strong>
+            {{ currencySymbol }}
+            {{ currentExpenses.toFixed(2) }}
+            /
+            {{ currencySymbol }}
+            {{ expenseLimit.toFixed(2) }}
+          </strong>
+        </div>
+
+        <div class="progress-track">
+          <div
+            class="progress-bar expense"
+            [class.over-limit]="
+              expenseProgress > 100
+            "
+            [style.width.%]="expenseBarWidth"
+          ></div>
+        </div>
+
+        <small>
+          {{ expenseProgress.toFixed(0) }}%
+          utilizado
+        </small>
+
+      </div>
+
+    }
+
+  } @else {
+
+    <p class="empty-plan">
+      Todavía no has configurado un plan mensual.
+    </p>
+
+  }
+
+</section>
