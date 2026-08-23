@@ -1,16 +1,13 @@
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
-
 export const environment = {
-  production: false
-};
+  production: false,
 
-/*
- * For easier debugging in development mode, you can import the following file
- * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
- *
- * This import should be commented out in production mode because it will have a negative impact
- * on performance if an error is thrown.
- */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+  firebase: {
+    apiKey: 'AIzaSyA6eF4gkeDbHYTlUCPG3Pkwc0rUxJLVgL0',
+    authDomain: 'konteo-fiance.firebaseapp.com',
+    projectId: 'konteo-fiance',
+    storageBucket: 'konteo-fiance.firebasestorage.app',
+    messagingSenderId: '299692634553',
+    appId: '1:299692634553:web:acd7884ea8c6e94107c668',
+    measurementId: 'G-RK21E578ML',
+  },
+};
