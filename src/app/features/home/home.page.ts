@@ -1,4 +1,10 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+
 import { Router } from '@angular/router';
 
 import {
@@ -10,6 +16,8 @@ import {
 } from '@ionic/angular';
 
 import { AuthService } from '../../core/auth/auth';
+import { ProfileService } from '../../core/services/profile';
+import { UserProfile } from '../../shared/models';
 
 @Component({
   selector: 'app-home',
@@ -23,29 +31,75 @@ import { AuthService } from '../../core/auth/auth';
     IonButton,
   ],
 })
-export class HomePage {
+export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
 
-  isLoggingOut = false;
+  readonly profile = signal<UserProfile | null>(null);
+  readonly isLoadingProfile = signal(true);
+  readonly profileError = signal('');
 
-  async logout(): Promise<void> {
-    if (this.isLoggingOut) {
+  readonly isLoggingOut = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    await this.loadProfile();
+  }
+
+  private async loadProfile(): Promise<void> {
+    const user = this.authService.currentUser;
+
+    if (!user) {
+      this.profileError.set(
+        'No se encontró una sesión activa.',
+      );
+
+      this.isLoadingProfile.set(false);
       return;
     }
 
-    this.isLoggingOut = true;
+    try {
+      const profile =
+        await this.profileService.getProfile(user.uid);
+
+      this.profile.set(profile);
+    } catch (error) {
+      console.error(
+        'Profile load error:',
+        error,
+      );
+
+      this.profileError.set(
+        'No se pudo cargar el perfil.',
+      );
+    } finally {
+      this.isLoadingProfile.set(false);
+    }
+  }
+
+  async logout(): Promise<void> {
+    if (this.isLoggingOut()) {
+      return;
+    }
+
+    this.isLoggingOut.set(true);
 
     try {
       await this.authService.logout();
 
-      await this.router.navigateByUrl('/login', {
-        replaceUrl: true,
-      });
+      await this.router.navigateByUrl(
+        '/login',
+        {
+          replaceUrl: true,
+        },
+      );
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error(
+        'Logout error:',
+        error,
+      );
     } finally {
-      this.isLoggingOut = false;
+      this.isLoggingOut.set(false);
     }
   }
 }

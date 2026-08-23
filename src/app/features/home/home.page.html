@@ -1,33 +1,60 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>KenFinance</ion-title>
+    <ion-title>KenFinance v2</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">KenFinance</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
   <div id="container">
-    <strong>Sesión iniciada correctamente</strong>
 
-    <p>
-      KenFinance v2 está conectado con Firebase Authentication.
-    </p>
+    @if (isLoadingProfile()) {
+
+      <strong>Cargando perfil...</strong>
+
+    } @else if (profileError()) {
+
+      <strong>{{ profileError() }}</strong>
+
+    } @else if (profile(); as userProfile) {
+
+      <strong>
+        Bienvenido, {{ userProfile.name }}
+      </strong>
+
+      <p>
+        Moneda base:
+        {{ userProfile.currency }}
+      </p>
+
+      <p>
+        Ciudad:
+        {{ userProfile.city || 'No registrada' }}
+      </p>
+
+      <p>
+        Ocupación:
+        {{ userProfile.occupation || 'No registrada' }}
+      </p>
+
+    } @else {
+
+      <strong>
+        No existe un perfil registrado.
+      </strong>
+
+    }
 
     <ion-button
       type="button"
-      [disabled]="isLoggingOut"
+      [disabled]="isLoggingOut()"
       (click)="logout()"
     >
-      @if (isLoggingOut) {
+      @if (isLoggingOut()) {
         Cerrando sesión...
       } @else {
         Cerrar sesión
       }
     </ion-button>
+
   </div>
 </ion-content>
