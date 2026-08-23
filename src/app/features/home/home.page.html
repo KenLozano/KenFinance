@@ -7,42 +7,72 @@
 <ion-content [fullscreen]="true">
   <div id="container">
 
-    @if (isLoadingProfile()) {
+    <section>
+      <h2>Perfil</h2>
 
-      <strong>Cargando perfil...</strong>
+      @if (isLoadingProfile()) {
 
-    } @else if (profileError()) {
+        <p>Cargando perfil...</p>
 
-      <strong>{{ profileError() }}</strong>
+      } @else if (profileError()) {
 
-    } @else if (profile(); as userProfile) {
+        <p>{{ profileError() }}</p>
 
-      <strong>
-        Bienvenido, {{ userProfile.name }}
-      </strong>
+      } @else if (profile(); as userProfile) {
 
-      <p>
-        Moneda base:
-        {{ userProfile.currency }}
-      </p>
+        <p>
+          <strong>
+            Bienvenido, {{ userProfile.name }}
+          </strong>
+        </p>
 
-      <p>
-        Ciudad:
-        {{ userProfile.city || 'No registrada' }}
-      </p>
+        <p>
+          Moneda base:
+          {{ userProfile.currency }}
+        </p>
 
-      <p>
-        Ocupación:
-        {{ userProfile.occupation || 'No registrada' }}
-      </p>
+      } @else {
 
-    } @else {
+        <p>No existe un perfil registrado.</p>
 
-      <strong>
-        No existe un perfil registrado.
-      </strong>
+      }
+    </section>
 
-    }
+    <section>
+      <h2>Cuentas</h2>
+
+      @if (isLoadingAccounts()) {
+
+        <p>Cargando cuentas...</p>
+
+      } @else if (accountsError()) {
+
+        <p>{{ accountsError() }}</p>
+
+      } @else if (accounts().length > 0) {
+
+        @for (account of accounts(); track account.id) {
+          <article>
+            <strong>{{ account.name }}</strong>
+
+            <p>
+              Tipo:
+              {{ account.type }}
+            </p>
+
+            <p>
+              Moneda:
+              {{ account.currency }}
+            </p>
+          </article>
+        }
+
+      } @else {
+
+        <p>No tienes cuentas registradas.</p>
+
+      }
+    </section>
 
     <ion-button
       type="button"

@@ -16,8 +16,13 @@ import {
 } from '@ionic/angular';
 
 import { AuthService } from '../../core/auth/auth';
+import { AccountService } from '../../core/services/account';
 import { ProfileService } from '../../core/services/profile';
-import { UserProfile } from '../../shared/models';
+
+import {
+  Account,
+  UserProfile,
+} from '../../shared/models';
 
 @Component({
   selector: 'app-home',
@@ -34,16 +39,25 @@ import { UserProfile } from '../../shared/models';
 export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
+  private readonly accountService = inject(AccountService);
   private readonly router = inject(Router);
 
   readonly profile = signal<UserProfile | null>(null);
+  readonly accounts = signal<Account[]>([]);
+
   readonly isLoadingProfile = signal(true);
+  readonly isLoadingAccounts = signal(true);
+
   readonly profileError = signal('');
+  readonly accountsError = signal('');
 
   readonly isLoggingOut = signal(false);
 
   async ngOnInit(): Promise<void> {
-    await this.loadProfile();
+    await Promise.all([
+      this.loadProfile(),
+      this.loadAccounts(),
+    ]);
   }
 
   private async loadProfile(): Promise<void> {
@@ -74,6 +88,37 @@ export class HomePage implements OnInit {
       );
     } finally {
       this.isLoadingProfile.set(false);
+    }
+  }
+
+  private async loadAccounts(): Promise<void> {
+    const user = this.authService.currentUser;
+
+    if (!user) {
+      this.accountsError.set(
+        'No se encontró una sesión activa.',
+      );
+
+      this.isLoadingAccounts.set(false);
+      return;
+    }
+
+    try {
+      const accounts =
+        await this.accountService.getAccounts(user.uid);
+
+      this.accounts.set(accounts);
+    } catch (error) {
+      console.error(
+        'Accounts load error:',
+        error,
+      );
+
+      this.accountsError.set(
+        'No se pudieron cargar las cuentas.',
+      );
+    } finally {
+      this.isLoadingAccounts.set(false);
     }
   }
 
