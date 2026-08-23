@@ -21,6 +21,10 @@ import {
 
 import { Account } from '../../shared/models';
 
+import {
+  fromMinorUnits,
+} from '../../shared/utils/money';
+
 @Component({
   selector: 'app-portfolio',
   templateUrl: './portfolio.component.html',
@@ -74,20 +78,33 @@ export class PortfolioComponent implements OnInit {
       this.transactions.set(transactions);
 
       const balances: Record<string, number> = {};
-      const totals: Record<string, number> = {};
+const totalsMinorUnits: Record<string, number> = {};
 
-      for (const account of accounts) {
-        const balance =
-          this.transactionService.calculateAccountBalance(
-            transactions,
-            account.id,
-          );
+for (const account of accounts) {
+  const balanceMinorUnits =
+    this.transactionService
+      .calculateAccountBalanceMinorUnits(
+        transactions,
+        account.id,
+      );
 
-        balances[account.id] = balance;
+  balances[account.id] =
+    fromMinorUnits(balanceMinorUnits);
 
-        totals[account.currency] =
-          (totals[account.currency] ?? 0) + balance;
-      }
+  totalsMinorUnits[account.currency] =
+    (totalsMinorUnits[account.currency] ?? 0) +
+    balanceMinorUnits;
+}
+
+const totals: Record<string, number> = {};
+
+for (
+  const [currency, amountMinorUnits]
+  of Object.entries(totalsMinorUnits)
+) {
+  totals[currency] =
+    fromMinorUnits(amountMinorUnits);
+}
 
       this.balances.set(balances);
       this.totalsByCurrency.set(totals);

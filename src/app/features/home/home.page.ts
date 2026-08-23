@@ -1,11 +1,12 @@
 import {
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import {
   IonButton,
@@ -18,6 +19,7 @@ import {
 import { AuthService } from '../../core/auth/auth';
 import { AccountService } from '../../core/services/account';
 import { ProfileService } from '../../core/services/profile';
+
 import {
   Transaction,
   TransactionService,
@@ -28,11 +30,18 @@ import {
   UserProfile,
 } from '../../shared/models';
 
+import {
+  fromMinorUnits,
+  subtractMoney,
+  sumMoney,
+} from '../../shared/utils/money';
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
+    RouterLink,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -45,112 +54,131 @@ export class HomePage implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly accountService = inject(AccountService);
   private readonly transactionService = inject(TransactionService);
-  private readonly router = inject(Router);
+
+  readonly Math = Math;
 
   readonly profile = signal<UserProfile | null>(null);
   readonly accounts = signal<Account[]>([]);
   readonly transactions = signal<Transaction[]>([]);
 
-  readonly accountBalances = signal<Record<string, number>>({});
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal('');
 
-  readonly isLoadingProfile = signal(true);
-  readonly isLoadingPortfolio = signal(true);
+  readonly todayIncome = computed(() =>
+  sumMoney(
+    this.transactions()
+      .filter(
+        (transaction) =>
+          transaction.type === 'income' &&
+          !transaction.isInitialBalance &&
+          this.isToday(transaction.date),
+      )
+      .map(
+        (transaction) =>
+          transaction.amount,
+      ),
+  ),
+);
 
-  readonly profileError = signal('');
-  readonly portfolioError = signal('');
+  readonly todayExpenses = computed(() =>
+  sumMoney(
+    this.transactions()
+      .filter(
+        (transaction) =>
+          transaction.type === 'expense' &&
+          this.isToday(transaction.date),
+      )
+      .map(
+        (transaction) =>
+          transaction.amount,
+      ),
+  ),
+);
 
-  readonly isLoggingOut = signal(false);
+  readonly todayBalance = computed(() =>
+  subtractMoney(
+    this.todayIncome(),
+    this.todayExpenses(),
+  ),
+);
+  readonly totalsByCurrency = computed(() => {
+  const totalsMinorUnits: Record<string, number> = {};
+
+  for (const account of this.accounts()) {
+    const balanceMinorUnits =
+      this.transactionService
+        .calculateAccountBalanceMinorUnits(
+          this.transactions(),
+          account.id,
+        );
+
+    totalsMinorUnits[account.currency] =
+      (totalsMinorUnits[account.currency] ?? 0) +
+      balanceMinorUnits;
+  }
+
+  const totals: Record<string, number> = {};
+
+  for (
+    const [currency, amountMinorUnits]
+    of Object.entries(totalsMinorUnits)
+  ) {
+    totals[currency] =
+      fromMinorUnits(amountMinorUnits);
+  }
+
+  return totals;
+});
 
   async ngOnInit(): Promise<void> {
-    await Promise.all([
-      this.loadProfile(),
-      this.loadPortfolio(),
-    ]);
+    await this.loadHome();
   }
 
-  private async loadProfile(): Promise<void> {
+  private async loadHome(): Promise<void> {
     const user = this.authService.currentUser;
 
     if (!user) {
-      this.profileError.set(
+      this.errorMessage.set(
         'No se encontró una sesión activa.',
       );
 
-      this.isLoadingProfile.set(false);
+      this.isLoading.set(false);
       return;
     }
 
     try {
-      const profile =
-        await this.profileService.getProfile(user.uid);
+      const [
+        profile,
+        accounts,
+        transactions,
+      ] = await Promise.all([
+        this.profileService.getProfile(user.uid),
+        this.accountService.getAccounts(user.uid),
+        this.transactionService.getAllTransactions(
+          user.uid,
+        ),
+      ]);
 
       this.profile.set(profile);
-    } catch (error) {
-      console.error(
-        'Profile load error:',
-        error,
-      );
-
-      this.profileError.set(
-        'No se pudo cargar el perfil.',
-      );
-    } finally {
-      this.isLoadingProfile.set(false);
-    }
-  }
-
-  private async loadPortfolio(): Promise<void> {
-    const user = this.authService.currentUser;
-
-    if (!user) {
-      this.portfolioError.set(
-        'No se encontró una sesión activa.',
-      );
-
-      this.isLoadingPortfolio.set(false);
-      return;
-    }
-
-    try {
-      const [accounts, transactions] =
-        await Promise.all([
-          this.accountService.getAccounts(user.uid),
-          this.transactionService.getAllTransactions(user.uid),
-        ]);
-
       this.accounts.set(accounts);
       this.transactions.set(transactions);
-
-      const balances: Record<string, number> = {};
-
-      for (const account of accounts) {
-        balances[account.id] =
-          this.transactionService.calculateAccountBalance(
-            transactions,
-            account.id,
-          );
-      }
-
-      this.accountBalances.set(balances);
     } catch (error) {
       console.error(
-        'Portfolio load error:',
+        'Home load error:',
         error,
       );
 
-      this.portfolioError.set(
-        'No se pudo cargar el portafolio.',
+      this.errorMessage.set(
+        'No se pudo cargar la información financiera.',
       );
     } finally {
-      this.isLoadingPortfolio.set(false);
+      this.isLoading.set(false);
     }
   }
 
-  getAccountBalance(accountId: string): number {
-    return this.accountBalances()[accountId] ?? 0;
-  }
-
-  getCurrencySymbol(currency: string): string {
+  getCurrencySymbol(
+    currency: string,
+  ): string {
     switch (currency) {
       case 'USD':
         return '$';
@@ -164,51 +192,16 @@ export class HomePage implements OnInit {
     }
   }
 
-  getAccountTypeLabel(type: string): string {
-    switch (type) {
-      case 'bank_account':
-        return 'Cuenta bancaria';
+  private isToday(date: Date): boolean {
+    const today = new Date();
 
-      case 'wallet':
-        return 'Billetera digital';
-
-      case 'cash':
-        return 'Efectivo';
-
-      case 'credit_card':
-        return 'Tarjeta de crédito';
-
-      case 'crypto':
-        return 'Criptomonedas';
-
-      default:
-        return 'Cuenta';
-    }
-  }
-
-  async logout(): Promise<void> {
-    if (this.isLoggingOut()) {
-      return;
-    }
-
-    this.isLoggingOut.set(true);
-
-    try {
-      await this.authService.logout();
-
-      await this.router.navigateByUrl(
-        '/login',
-        {
-          replaceUrl: true,
-        },
-      );
-    } catch (error) {
-      console.error(
-        'Logout error:',
-        error,
-      );
-    } finally {
-      this.isLoggingOut.set(false);
-    }
+    return (
+      date.getFullYear() ===
+        today.getFullYear() &&
+      date.getMonth() ===
+        today.getMonth() &&
+      date.getDate() ===
+        today.getDate()
+    );
   }
 }

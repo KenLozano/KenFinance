@@ -18,6 +18,11 @@ import {
   TransactionBase,
 } from '../../shared/models';
 
+import {
+  fromMinorUnits,
+  toMinorUnits,
+} from '../../shared/utils/money';
+
 export type Transaction = Income | Expense;
 
 @Injectable({
@@ -123,26 +128,39 @@ export class TransactionService {
     );
   }
 
-  calculateAccountBalance(
-    transactions: Transaction[],
-    assetId: string,
-  ): number {
-    return transactions
-      .filter(
-        (transaction) =>
-          transaction.assetId === assetId,
-      )
-      .reduce(
-        (total, transaction) =>
-          total +
-          (
-            transaction.type === 'income'
-              ? transaction.amount
-              : -transaction.amount
-          ),
-        0,
-      );
-  }
+  calculateAccountBalanceMinorUnits(
+  transactions: Transaction[],
+  assetId: string,
+): number {
+  return transactions
+    .filter(
+      (transaction) =>
+        transaction.assetId === assetId,
+    )
+    .reduce(
+      (total, transaction) => {
+        const amountMinorUnits =
+          toMinorUnits(transaction.amount);
+
+        return transaction.type === 'income'
+          ? total + amountMinorUnits
+          : total - amountMinorUnits;
+      },
+      0,
+    );
+}
+
+calculateAccountBalance(
+  transactions: Transaction[],
+  assetId: string,
+): number {
+  return fromMinorUnits(
+    this.calculateAccountBalanceMinorUnits(
+      transactions,
+      assetId,
+    ),
+  );
+}
 
   private toDate(
     value: unknown,

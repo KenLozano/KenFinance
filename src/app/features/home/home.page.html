@@ -1,96 +1,197 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>KenFinance v2</ion-title>
+    <ion-title>KenFinance</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div id="container">
 
-    <section>
-      <h2>Perfil</h2>
+  <main class="home-page">
 
-      @if (isLoadingProfile()) {
+    @if (isLoading()) {
 
-        <p>Cargando perfil...</p>
+      <section class="loading-state">
+        <p>Cargando tus finanzas...</p>
+      </section>
 
-      } @else if (profileError()) {
+    } @else if (errorMessage()) {
 
-        <p>{{ profileError() }}</p>
+      <section class="error-state">
+        <p>{{ errorMessage() }}</p>
+      </section>
 
-      } @else if (profile(); as userProfile) {
+    } @else {
 
-        <p>
-          <strong>
-            Bienvenido, {{ userProfile.name }}
+      <header class="welcome">
+        <p>Hola</p>
+
+        <h1>
+          {{ profile()?.name || 'Usuario' }}
+        </h1>
+
+        <span>
+          Este es tu resumen financiero de hoy.
+        </span>
+      </header>
+
+      <section class="primary-grid">
+
+        <article class="daily-card">
+
+          <header class="card-header">
+            <div>
+              <span class="eyebrow">
+                HOY
+              </span>
+
+              <h2>Balance diario</h2>
+            </div>
+          </header>
+
+          <strong
+            class="daily-balance"
+            [class.negative]="todayBalance() < 0"
+          >
+            {{ todayBalance() >= 0 ? '+' : '-' }}
+            S/
+            {{ Math.abs(todayBalance()).toFixed(2) }}
           </strong>
-        </p>
 
-        <p>
-          Moneda base:
-          {{ userProfile.currency }}
-        </p>
+          <div class="daily-stats">
 
-      }
-    </section>
+            <div class="stat">
+              <span>Ingresos</span>
 
-    <section>
-      <h2>Portafolio</h2>
-
-      @if (isLoadingPortfolio()) {
-
-        <p>Cargando portafolio...</p>
-
-      } @else if (portfolioError()) {
-
-        <p>{{ portfolioError() }}</p>
-
-      } @else if (accounts().length > 0) {
-
-        @for (account of accounts(); track account.id) {
-          <article>
-            <h3>
-              {{ account.name }}
-            </h3>
-
-            <p>
-              {{ getAccountTypeLabel(account.type) }}
-            </p>
-
-            <p>
-              Moneda:
-              {{ account.currency }}
-            </p>
-
-            <p>
-              <strong>
-                {{ getCurrencySymbol(account.currency) }}
-                {{ getAccountBalance(account.id).toFixed(2) }}
+              <strong class="positive">
+                + S/
+                {{ todayIncome().toFixed(2) }}
               </strong>
-            </p>
-          </article>
-        }
+            </div>
 
-      } @else {
+            <div class="stat">
+              <span>Gastos</span>
 
-        <p>
-          No tienes cuentas registradas.
-        </p>
+              <strong class="negative">
+                - S/
+                {{ todayExpenses().toFixed(2) }}
+              </strong>
+            </div>
 
-      }
-    </section>
+          </div>
 
-    <ion-button
-      type="button"
-      [disabled]="isLoggingOut()"
-      (click)="logout()"
-    >
-      @if (isLoggingOut()) {
-        Cerrando sesión...
-      } @else {
-        Cerrar sesión
-      }
-    </ion-button>
+          <div class="daily-actions">
 
-  </div>
+            <ion-button
+              type="button"
+              fill="solid"
+              disabled
+            >
+              + Ingreso
+            </ion-button>
+
+            <ion-button
+              type="button"
+              fill="outline"
+              disabled
+            >
+              - Gasto
+            </ion-button>
+
+          </div>
+
+          <small class="pending-note">
+            Registro rápido de movimientos próximamente.
+          </small>
+
+        </article>
+
+        <article class="total-card">
+
+          <header class="card-header">
+            <div>
+              <span class="eyebrow">
+                PATRIMONIO
+              </span>
+
+              <h2>Saldo total</h2>
+            </div>
+          </header>
+
+          <div class="currency-list">
+
+            @if (
+              totalsByCurrency()['PEN']
+              !== undefined
+            ) {
+              <div class="currency-row">
+                <span>PEN</span>
+
+                <strong>
+                  S/
+                  {{
+                    totalsByCurrency()['PEN']
+                      .toFixed(2)
+                  }}
+                </strong>
+              </div>
+            }
+
+            @if (
+              totalsByCurrency()['USD']
+              !== undefined
+            ) {
+              <div class="currency-row">
+                <span>USD</span>
+
+                <strong>
+                  $
+                  {{
+                    totalsByCurrency()['USD']
+                      .toFixed(2)
+                  }}
+                </strong>
+              </div>
+            }
+
+            @if (
+              totalsByCurrency()['EUR']
+              !== undefined
+            ) {
+              <div class="currency-row">
+                <span>EUR</span>
+
+                <strong>
+                  €
+                  {{
+                    totalsByCurrency()['EUR']
+                      .toFixed(2)
+                  }}
+                </strong>
+              </div>
+            }
+
+            @if (accounts().length === 0) {
+              <div class="currency-row">
+                <span>PEN</span>
+                <strong>S/ 0.00</strong>
+              </div>
+            }
+
+          </div>
+
+          <ion-button
+            routerLink="/portfolio"
+            fill="clear"
+          >
+            Ver Portafolio →
+          </ion-button>
+
+        </article>
+
+      </section>
+
+    }
+
+  </main>
+
 </ion-content>
