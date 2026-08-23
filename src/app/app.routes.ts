@@ -36,13 +36,23 @@ export const routes: Routes = [
         (m) => m.HomePage,
       ),
   },
+    {
+  path: 'portfolio',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./features/portfolio/portfolio.component').then(
+      (m) => m.PortfolioComponent,
+    ),
+},
   {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
   },
+  
   {
     path: '**',
     redirectTo: 'home',
   },
+
 ];

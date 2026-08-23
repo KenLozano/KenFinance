@@ -1,0 +1,109 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Portafolio</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="portfolio-page">
+
+    <section class="portfolio-summary">
+      <h2>Saldo total</h2>
+
+      @if (isLoading()) {
+
+        <p>Cargando portafolio...</p>
+
+      } @else if (errorMessage()) {
+
+        <p>{{ errorMessage() }}</p>
+
+      } @else {
+
+        <div class="currency-totals">
+
+          @if (totalsByCurrency()['PEN'] !== undefined) {
+            <strong>
+              S/
+              {{ totalsByCurrency()['PEN'].toFixed(2) }}
+            </strong>
+          }
+
+          @if (totalsByCurrency()['USD'] !== undefined) {
+            <strong>
+              $
+              {{ totalsByCurrency()['USD'].toFixed(2) }}
+            </strong>
+          }
+
+          @if (totalsByCurrency()['EUR'] !== undefined) {
+            <strong>
+              €
+              {{ totalsByCurrency()['EUR'].toFixed(2) }}
+            </strong>
+          }
+
+          @if (accounts().length === 0) {
+            <strong>S/ 0.00</strong>
+          }
+
+        </div>
+
+      }
+    </section>
+
+    <section class="accounts-section">
+      <header>
+        <div>
+          <h2>Cuentas</h2>
+          <p>
+            {{ accounts().length }}
+            cuenta(s) activa(s)
+          </p>
+        </div>
+      </header>
+
+      @if (!isLoading() && !errorMessage()) {
+
+        @if (accounts().length > 0) {
+
+          <div class="accounts-grid">
+
+            @for (account of accounts(); track account.id) {
+
+              <article class="account-card">
+                <div class="account-info">
+                  <h3>{{ account.name }}</h3>
+
+                  <p>
+                    {{ getTypeLabel(account.type) }}
+                  </p>
+
+                  <span>
+                    {{ account.currency }}
+                  </span>
+                </div>
+
+                <strong class="account-balance">
+                  {{ getCurrencySymbol(account.currency) }}
+                  {{ getBalance(account.id).toFixed(2) }}
+                </strong>
+              </article>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <p>
+            Todavía no tienes cuentas registradas.
+          </p>
+
+        }
+
+      }
+    </section>
+
+  </main>
+</ion-content>
