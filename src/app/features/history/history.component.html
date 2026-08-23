@@ -1,0 +1,369 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Historial</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <main class="history-page">
+
+    <header class="history-header">
+      <div>
+        <span class="eyebrow">
+          MOVIMIENTOS
+        </span>
+
+        <h1>Historial</h1>
+
+        <p>
+          Consulta y filtra tus movimientos financieros.
+        </p>
+      </div>
+
+      @if (!isLoading()) {
+        <div class="history-counts">
+          <span>
+            {{ visibleIncomeCount() }}
+            ingreso(s)
+          </span>
+
+          <span>
+            {{ visibleExpenseCount() }}
+            gasto(s)
+          </span>
+        </div>
+      }
+    </header>
+
+    @if (isLoading()) {
+
+      <section class="status-card">
+        Cargando movimientos...
+      </section>
+
+    } @else if (errorMessage()) {
+
+      <section class="status-card error">
+        {{ errorMessage() }}
+      </section>
+
+    } @else {
+
+      <section class="filters-card">
+
+        <div class="search-field">
+          <label for="history-search">
+            Buscar
+          </label>
+
+          <input
+            id="history-search"
+            type="search"
+            placeholder="Nota, monto, comercio o cuenta..."
+            [ngModel]="searchTerm()"
+            (ngModelChange)="updateSearch($event)"
+          />
+        </div>
+
+        <div class="period-buttons">
+
+          <button
+            type="button"
+            [class.active]="period() === 'today'"
+            (click)="setPeriod('today')"
+          >
+            Hoy
+          </button>
+
+          <button
+            type="button"
+            [class.active]="period() === 'week'"
+            (click)="setPeriod('week')"
+          >
+            7 días
+          </button>
+
+          <button
+            type="button"
+            [class.active]="period() === 'month'"
+            (click)="setPeriod('month')"
+          >
+            Mes
+          </button>
+
+          <button
+            type="button"
+            [class.active]="period() === 'custom'"
+            (click)="setPeriod('custom')"
+          >
+            Rango
+          </button>
+
+        </div>
+
+        @if (period() === 'custom') {
+
+          <div class="custom-range">
+
+            <label>
+              Desde
+
+              <input
+                type="date"
+                [ngModel]="customStart()"
+                (ngModelChange)="
+                  updateCustomStart($event)
+                "
+              />
+            </label>
+
+            <label>
+              Hasta
+
+              <input
+                type="date"
+                [ngModel]="customEnd()"
+                (ngModelChange)="
+                  updateCustomEnd($event)
+                "
+              />
+            </label>
+
+          </div>
+
+        }
+
+        <div class="filter-grid">
+
+          <label>
+            Cuenta
+
+            <select
+              [ngModel]="selectedAccountId()"
+              (ngModelChange)="
+                updateAccount($event)
+              "
+            >
+              <option value="all">
+                Todas las cuentas
+              </option>
+
+              @for (
+                account of accounts();
+                track account.id
+              ) {
+                <option
+                  [value]="account.id"
+                >
+                  {{ account.name }}
+                  ·
+                  {{ account.currency }}
+                </option>
+              }
+
+            </select>
+          </label>
+
+          <label>
+            Categoría
+
+            <select
+              [ngModel]="selectedCategory()"
+              (ngModelChange)="
+                updateCategory($event)
+              "
+            >
+              <option value="all">
+                Todas
+              </option>
+
+              <option value="income">
+                Ingresos
+              </option>
+
+              @for (
+                category
+                of availableCategories();
+                track category
+              ) {
+                <option
+                  [value]="category"
+                >
+                  {{ category }}
+                </option>
+              }
+
+            </select>
+          </label>
+
+          <label>
+            Ordenar
+
+            <select
+              [ngModel]="sort()"
+              (ngModelChange)="
+                updateSort($event)
+              "
+            >
+              <option value="date_desc">
+                Más recientes
+              </option>
+
+              <option value="date_asc">
+                Más antiguos
+              </option>
+
+              <option value="amount_desc">
+                Mayor monto
+              </option>
+
+              <option value="amount_asc">
+                Menor monto
+              </option>
+            </select>
+          </label>
+
+        </div>
+
+      </section>
+
+      <section class="movements-section">
+
+        <header class="section-header">
+          <div>
+            <span class="eyebrow">
+              RESULTADOS
+            </span>
+
+            <h2>Movimientos</h2>
+          </div>
+
+          <strong>
+            {{ filteredTransactions().length }}
+          </strong>
+        </header>
+
+        @if (
+          filteredTransactions().length > 0
+        ) {
+
+          <div class="movement-list">
+
+            @for (
+              transaction
+              of filteredTransactions();
+              track transaction.id
+            ) {
+
+              <article class="movement-row">
+
+                <div
+                  class="movement-indicator"
+                  [class.income]="
+                    transaction.type === 'income'
+                  "
+                  [class.expense]="
+                    transaction.type === 'expense'
+                  "
+                ></div>
+
+                <div class="movement-info">
+
+                  <strong>
+                    {{
+                      getTransactionTitle(
+                        transaction
+                      )
+                    }}
+                  </strong>
+
+                  <span>
+                    {{
+                      getAccountName(
+                        transaction.assetId
+                      )
+                    }}
+                    ·
+                    {{
+                      formatDate(
+                        transaction.date
+                      )
+                    }}
+                  </span>
+
+                  @if (
+                    transaction.type === 'expense' &&
+                    transaction.category
+                  ) {
+                    <small>
+                      {{ transaction.category }}
+                    </small>
+                  }
+
+                  @if (
+                    transaction.type === 'income' &&
+                    transaction.source
+                  ) {
+                    <small>
+                      {{ transaction.source }}
+                    </small>
+                  }
+
+                </div>
+
+                <strong
+                  class="movement-amount"
+                  [class.income]="
+                    transaction.type === 'income'
+                  "
+                  [class.expense]="
+                    transaction.type === 'expense'
+                  "
+                >
+                  {{
+                    transaction.type === 'income'
+                      ? '+'
+                      : '-'
+                  }}
+
+                  {{
+                    getCurrencySymbol(
+                      getTransactionCurrency(
+                        transaction
+                      )
+                    )
+                  }}
+
+                  {{
+                    transaction.amount.toFixed(2)
+                  }}
+                </strong>
+
+              </article>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            <strong>
+              No encontramos movimientos
+            </strong>
+
+            <p>
+              Prueba modificando los filtros seleccionados.
+            </p>
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+  </main>
+
+</ion-content>

@@ -44,6 +44,17 @@ export const routes: Routes = [
       (m) => m.PortfolioComponent,
     ),
 },
+
+{
+  path: 'history',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import(
+      './features/history/history.component'
+    ).then(
+      (m) => m.HistoryComponent,
+    ),
+},
   {
     path: '',
     redirectTo: 'home',
