@@ -18,6 +18,10 @@ import {
 import { AuthService } from '../../core/auth/auth';
 import { AccountService } from '../../core/services/account';
 import { ProfileService } from '../../core/services/profile';
+import {
+  Transaction,
+  TransactionService,
+} from '../../core/services/transaction';
 
 import {
   Account,
@@ -40,23 +44,27 @@ export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
   private readonly accountService = inject(AccountService);
+  private readonly transactionService = inject(TransactionService);
   private readonly router = inject(Router);
 
   readonly profile = signal<UserProfile | null>(null);
   readonly accounts = signal<Account[]>([]);
+  readonly transactions = signal<Transaction[]>([]);
+
+  readonly accountBalances = signal<Record<string, number>>({});
 
   readonly isLoadingProfile = signal(true);
-  readonly isLoadingAccounts = signal(true);
+  readonly isLoadingPortfolio = signal(true);
 
   readonly profileError = signal('');
-  readonly accountsError = signal('');
+  readonly portfolioError = signal('');
 
   readonly isLoggingOut = signal(false);
 
   async ngOnInit(): Promise<void> {
     await Promise.all([
       this.loadProfile(),
-      this.loadAccounts(),
+      this.loadPortfolio(),
     ]);
   }
 
@@ -91,34 +99,90 @@ export class HomePage implements OnInit {
     }
   }
 
-  private async loadAccounts(): Promise<void> {
+  private async loadPortfolio(): Promise<void> {
     const user = this.authService.currentUser;
 
     if (!user) {
-      this.accountsError.set(
+      this.portfolioError.set(
         'No se encontró una sesión activa.',
       );
 
-      this.isLoadingAccounts.set(false);
+      this.isLoadingPortfolio.set(false);
       return;
     }
 
     try {
-      const accounts =
-        await this.accountService.getAccounts(user.uid);
+      const [accounts, transactions] =
+        await Promise.all([
+          this.accountService.getAccounts(user.uid),
+          this.transactionService.getAllTransactions(user.uid),
+        ]);
 
       this.accounts.set(accounts);
+      this.transactions.set(transactions);
+
+      const balances: Record<string, number> = {};
+
+      for (const account of accounts) {
+        balances[account.id] =
+          this.transactionService.calculateAccountBalance(
+            transactions,
+            account.id,
+          );
+      }
+
+      this.accountBalances.set(balances);
     } catch (error) {
       console.error(
-        'Accounts load error:',
+        'Portfolio load error:',
         error,
       );
 
-      this.accountsError.set(
-        'No se pudieron cargar las cuentas.',
+      this.portfolioError.set(
+        'No se pudo cargar el portafolio.',
       );
     } finally {
-      this.isLoadingAccounts.set(false);
+      this.isLoadingPortfolio.set(false);
+    }
+  }
+
+  getAccountBalance(accountId: string): number {
+    return this.accountBalances()[accountId] ?? 0;
+  }
+
+  getCurrencySymbol(currency: string): string {
+    switch (currency) {
+      case 'USD':
+        return '$';
+
+      case 'EUR':
+        return '€';
+
+      case 'PEN':
+      default:
+        return 'S/';
+    }
+  }
+
+  getAccountTypeLabel(type: string): string {
+    switch (type) {
+      case 'bank_account':
+        return 'Cuenta bancaria';
+
+      case 'wallet':
+        return 'Billetera digital';
+
+      case 'cash':
+        return 'Efectivo';
+
+      case 'credit_card':
+        return 'Tarjeta de crédito';
+
+      case 'crypto':
+        return 'Criptomonedas';
+
+      default:
+        return 'Cuenta';
     }
   }
 

@@ -31,45 +31,51 @@
           {{ userProfile.currency }}
         </p>
 
-      } @else {
-
-        <p>No existe un perfil registrado.</p>
-
       }
     </section>
 
     <section>
-      <h2>Cuentas</h2>
+      <h2>Portafolio</h2>
 
-      @if (isLoadingAccounts()) {
+      @if (isLoadingPortfolio()) {
 
-        <p>Cargando cuentas...</p>
+        <p>Cargando portafolio...</p>
 
-      } @else if (accountsError()) {
+      } @else if (portfolioError()) {
 
-        <p>{{ accountsError() }}</p>
+        <p>{{ portfolioError() }}</p>
 
       } @else if (accounts().length > 0) {
 
         @for (account of accounts(); track account.id) {
           <article>
-            <strong>{{ account.name }}</strong>
+            <h3>
+              {{ account.name }}
+            </h3>
 
             <p>
-              Tipo:
-              {{ account.type }}
+              {{ getAccountTypeLabel(account.type) }}
             </p>
 
             <p>
               Moneda:
               {{ account.currency }}
             </p>
+
+            <p>
+              <strong>
+                {{ getCurrencySymbol(account.currency) }}
+                {{ getAccountBalance(account.id).toFixed(2) }}
+              </strong>
+            </p>
           </article>
         }
 
       } @else {
 
-        <p>No tienes cuentas registradas.</p>
+        <p>
+          No tienes cuentas registradas.
+        </p>
 
       }
     </section>
