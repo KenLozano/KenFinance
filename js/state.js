@@ -10,7 +10,7 @@ export const state = {
     exportPeriod: localStorage.getItem('KenFinance.export.period') || 'semanal',
     customRangeStart: localStorage.getItem('KenFinance.range.start') || '',
     customRangeEnd: localStorage.getItem('KenFinance.range.end') || '',
-    latestExpenseItem: null,
+    
     planConfig: {
         incomeTarget: 0,
         expenseLimit: 0

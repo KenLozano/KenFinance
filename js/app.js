@@ -530,20 +530,6 @@ async function editItem(id, type) {
     }
 }
 
-async function duplicateLastExpense() {
-    if (!state.currentUser) return;
-    if (!state.latestExpenseItem) {
-        showToast('No hay gasto previo para duplicar', 'info');
-        return;
-    }
-    try {
-        await dbService.addDuplicateExpense(state.currentUser.uid, state.latestExpenseItem);
-        showToast('Ultimo gasto duplicado', 'success');
-        loadData();
-    } catch (err) {
-        showToast('No se pudo duplicar: ' + err.message, 'error');
-    }
-}
 
 // ============================================
 // AUTH STATE
@@ -1347,7 +1333,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ============================================
-// EVENT LISTENERS — Search, category, duplicate, plan
+// EVENT LISTENERS — Search, category,plan
 // ============================================
 let searchTimeout;
 document.getElementById('search-input')?.addEventListener('input', () => {
@@ -1355,7 +1341,6 @@ document.getElementById('search-input')?.addEventListener('input', () => {
     searchTimeout = setTimeout(() => loadData(), 300);
 });
 document.getElementById('category-filter')?.addEventListener('change', loadData);
-document.getElementById('btn-duplicate-expense')?.addEventListener('click', duplicateLastExpense);
 document.getElementById('btn-save-plan')?.addEventListener('click', async () => {
     if (await savePlanConfigFromUi()) loadData();
 });

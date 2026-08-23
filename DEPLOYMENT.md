@@ -1,478 +1,928 @@
-# 🚀 Guía de Despliegue - KenFinance
+ # 🚀 Deployment — KenFinance v1.0
 
-Esta guía te ayudará a desplegar **KenFinance** en producción en minutos.
+> Guía de despliegue correspondiente al estado final de **KenFinance v1.0 / Fase 1**.
 
----
-
-## 📋 Pre-requisitos
-
-Antes de desplegar, asegúrate de tener:
-
-- ✅ Proyecto Firebase configurado
-- ✅ Authentication habilitado (Email/Password)
-- ✅ Firestore Database creado
-- ✅ Reglas de Firestore publicadas
-- ✅ Código probado localmente
+**Versión:** 1.0.0  
+**Frontend:** HTML + CSS + JavaScript ES Modules  
+**Backend:** Firebase Authentication + Cloud Firestore  
+**Hosting principal:** Vercel  
+**Hosting alternativo configurado:** Firebase Hosting  
+**PWA:** Sí  
 
 ---
 
-## 🌐 Opción 1: Netlify (Recomendado)
+# 📑 Índice
 
-### ⚡ Deploy Rápido (5 minutos)
-
-#### Método Drag & Drop
-
-1. **Crear cuenta en Netlify**
-   - Ir a [netlify.com](https://www.netlify.com)
-   - Sign up (gratis, sin tarjeta de crédito)
-
-2. **Deploy manual**
-   ```
-   - Ir al dashboard de Netlify
-   - Click en "Sites" → "Add new site" → "Deploy manually"
-   - Arrastrar carpeta `cont/` completa
-   - Esperar ~30 segundos
-   ```
-
-3. **Obtener URL**
-   - Netlify asigna URL automática: `https://random-name-123.netlify.app`
-   - (Opcional) Cambiar nombre: Site settings → Change site name
-
-4. **Configurar Firebase**
-   ```
-   1. Ir a Firebase Console → Authentication → Settings
-   2. En "Authorized domains", agregar:
-      - tu-sitio.netlify.app
-   3. Click "Add domain"
-   ```
-
-5. **¡Listo!** 🎉
-   - Tu app está en línea
-   - HTTPS automático
-   - CDN global
-   - SSL certificado
-
-#### Método CI/CD desde Git (Automático)
-
-1. **Subir código a GitHub**
-   ```bash
-   git init
-   git add .
-   git commit -m "Deploy KenFinance"
-   git branch -M main
-   git remote add origin https://github.com/tuusuario/mi-dinero.git
-   git push -u origin main
-   ```
-
-2. **Conectar con Netlify**
-   ```
-   - Netlify Dashboard → "Add new site" → "Import from Git"
-   - Autorizar GitHub
-   - Seleccionar repositorio "mi-dinero"
-   - Build settings (dejar vacío, es solo HTML)
-   - Click "Deploy site"
-   ```
-
-3. **Deploy Automático**
-   - Cada `git push` = deploy automático
-   - Netlify construye y despliega en ~30 seg
-
-### 📝 Archivo `_redirects` (Ya incluido)
-
-Este archivo es crucial para SPAs en Netlify:
-
-```
-/*    /index.html   200
-```
-
-**¿Qué hace?**
-- Redirige todas las rutas a `index.html`
-- Permite navegación cliente-side
-- Evita errores 404 al recargar página
-
-### 🔧 Netlify.toml (Opcional)
-
-Para configuración avanzada, crear `netlify.toml`:
-
-```toml
-[build]
-  publish = "."
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    
-[[headers]]
-  for = "/service-worker.js"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-```
+1. [Objetivo](#1-objetivo)
+2. [Arquitectura de despliegue](#2-arquitectura-de-despliegue)
+3. [Archivos de configuración involucrados](#3-archivos-de-configuración-involucrados)
+4. [Requisitos previos](#4-requisitos-previos)
+5. [Verificación local antes del despliegue](#5-verificación-local-antes-del-despliegue)
+6. [Despliegue principal en Vercel](#6-despliegue-principal-en-vercel)
+7. [Configuración actual de Vercel](#7-configuración-actual-de-vercel)
+8. [Firebase utilizado por producción](#8-firebase-utilizado-por-producción)
+9. [Firebase Authentication](#9-firebase-authentication)
+10. [Cloud Firestore](#10-cloud-firestore)
+11. [Firestore Rules e índices](#11-firestore-rules-e-índices)
+12. [Firebase Hosting como alternativa](#12-firebase-hosting-como-alternativa)
+13. [PWA en producción](#13-pwa-en-producción)
+14. [Service Worker y caché](#14-service-worker-y-caché)
+15. [Manifest](#15-manifest)
+16. [Encabezados de seguridad](#16-encabezados-de-seguridad)
+17. [Actualización de producción](#17-actualización-de-producción)
+18. [Rollback](#18-rollback)
+19. [Checklist posterior al despliegue](#19-checklist-posterior-al-despliegue)
+20. [Problemas comunes](#20-problemas-comunes)
+21. [Netlify y `_redirects`](#21-netlify-y-_redirects)
+22. [Estado del despliegue v1.0](#22-estado-del-despliegue-v10)
 
 ---
 
-## 🔥 Opción 2: Firebase Hosting
+# 1. Objetivo
 
-### Ventajas
-- Integrado con Firebase
-- CDN global
-- HTTPS automático
-- Comandos CLI simples
+Este documento explica cómo ejecutar y desplegar **KenFinance v1.0** utilizando la configuración existente al cierre de la Fase 1.
 
-### Pasos
+La guía documenta únicamente la arquitectura actual:
 
-1. **Instalar Firebase CLI**
-   ```bash
-   npm install -g firebase-tools
-   ```
+```text
+GitHub
+   │
+   ▼
+Vercel
+   │
+   ▼
+KenFinance Web / PWA
+   │
+   ├── Firebase Authentication
+   └── Cloud Firestore
+```
 
-2. **Login a Firebase**
-   ```bash
-   firebase login
-   ```
+No documenta migraciones o tecnologías previstas para versiones posteriores.
 
-3. **Inicializar proyecto**
-   ```bash
-   cd cont
-   firebase init hosting
-   ```
+---
 
-   Responder:
-   - **Public directory**: `.` (punto)
-   - **Configure as SPA**: **Yes**
-   - **Overwrite index.html**: **No**
+# 2. Arquitectura de despliegue
 
-4. **Deploy**
-   ```bash
-   firebase deploy --only hosting
-   ```
+KenFinance v1.0 es una aplicación frontend estática.
 
-5. **URL resultante**
-   - `https://tu-proyecto.web.app`
-   - `https://tu-proyecto.firebaseapp.com`
+No existe un servidor Node.js propio en producción.
 
-6. **Dominio personalizado (Opcional)**
-   ```bash
-   firebase hosting:channel:deploy production
-   ```
+```text
+Repositorio GitHub
+       │
+       ▼
+     Vercel
+       │
+       ▼
+HTML + CSS + JavaScript
+       │
+       ▼
+Firebase
+├── Authentication
+└── Cloud Firestore
+```
 
-### firebase.json Actual
+Vercel publica los archivos del frontend.
 
-```json
-{
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
-}
+Firebase proporciona autenticación y persistencia de datos.
+
+---
+
+# 3. Archivos de configuración involucrados
+
+Los principales archivos relacionados con despliegue son:
+
+```text
+vercel.json
+firebase.json
+.firebaserc
+firestore.rules
+firestore.indexes.json
+manifest.json
+service-worker.js
+js/firebase/runtime-config.js
+```
+
+También existe:
+
+```text
+_redirects
+```
+
+correspondiente a compatibilidad con despliegues alternativos como Netlify.
+
+---
+
+# 4. Requisitos previos
+
+Para trabajar localmente se recomienda disponer de:
+
+```text
+Git
+Node.js
+npm
+navegador moderno
+```
+
+Para administrar el despliegue también se requiere acceso autorizado a:
+
+```text
+Repositorio GitHub de KenFinance
+Proyecto Vercel
+Proyecto Firebase
 ```
 
 ---
 
-## ▲ Opción 3: Vercel
+# 5. Verificación local antes del despliegue
 
-### Deploy Rápido
+Antes de publicar cambios:
 
-1. **Crear cuenta**: [vercel.com](https://vercel.com)
-
-2. **Deploy desde CLI**
-   ```bash
-   npm i -g vercel
-   vercel login
-   cd cont
-   vercel
-   ```
-
-3. **Deploy desde GitHub**
-   - Conectar repositorio
-   - Auto-deploy en cada push
-
-4. **Configuración** (`vercel.json`):
-   ```json
-   {
-     "rewrites": [
-       { "source": "/(.*)", "destination": "/index.html" }
-     ]
-   }
-   ```
-
----
-
-## 🌍 Opción 4: GitHub Pages
-
-### Limitaciones
-- ⚠️ Solo funciona con repos públicos (gratis)
-- No soporta SPAs nativamente (necesita workaround)
-
-### Deploy
-
-1. **Configurar en GitHub**
-   ```
-   Settings → Pages → Branch: main → Save
-   ```
-
-2. **Agregar `404.html`**
-   ```bash
-   cp index.html 404.html
-   ```
-
-3. **URL**: `https://tuusuario.github.io/mi-dinero`
-
----
-
-## ✅ Checklist Post-Deploy
-
-Después de desplegar en cualquier plataforma:
-
-### 1. Configurar Firebase Authorized Domains
-
-```
-Firebase Console → Authentication → Settings → Authorized domains
-Agregar:
-  - tu-dominio.netlify.app
-  - tu-dominio.web.app
-  - tu-dominio-custom.com
-```
-
-### 2. Verificar PWA
-
-Abrir en Chrome:
-```
-DevTools (F12) → Application → Manifest
-Verificar:
-  ✅ Manifest cargado
-  ✅ Service Worker activo
-  ✅ Iconos presentes
-```
-
-### 3. Test de Funcionalidad
-
-- [ ] Login funciona
-- [ ] Registro funciona
-- [ ] Agregar ingreso/gasto
-- [ ] Editar transacción
-- [ ] Eliminar transacción
-- [ ] Búsqueda funciona
-- [ ] Filtros funcionan
-- [ ] Exportar Excel
-- [ ] Exportar PDF
-- [ ] Gráficos se muestran
-- [ ] Presupuesto funciona
-- [ ] Logout funciona
-- [ ] PWA instalable
-
-### 4. Test de Performance
-
-Usar [PageSpeed Insights](https://pagespeed.web.dev/):
-```
-- Performance: >90
-- Accessibility: >90
-- Best Practices: >90
-- SEO: >90
-```
-
-### 5. Test de Seguridad
-
-- [ ] HTTPS activo (candado verde)
-- [ ] Firestore rules activas
-- [ ] Solo tu usuario ve tus datos
-- [ ] Headers de seguridad configurados
-
----
-
-## 🔧 Solución de Problemas
-
-### Error: "Auth domain not whitelisted"
-
-**Problema**: Firebase no autoriza tu dominio
-
-**Solución**:
-```
-1. Firebase Console → Authentication → Settings
-2. Scroll a "Authorized domains"
-3. Click "Add domain"
-4. Agregar tu URL de Netlify/Vercel/etc
-5. Guardar
-6. Esperar 5 minutos para propagación
-```
-
-### Error 404 en rutas
-
-**Problema**: SPA no está configurado
-
-**Solución**:
-- **Netlify**: Verificar archivo `_redirects` existe
-- **Vercel**: Crear `vercel.json` con rewrites
-- **Firebase**: Verificar `firebase.json` tiene rewrites
-
-### PWA no se puede instalar
-
-**Problema**: Manifest o Service Worker
-
-**Solución**:
-```
-1. Verificar HTTPS (PWA requiere HTTPS)
-2. Abrir DevTools → Application
-3. Ver errores en Manifest y Service Worker
-4. Corregir paths en manifest.json
-5. Verificar service-worker.js carga
-```
-
-### Gráficos/PDF no funcionan en producción
-
-**Problema**: CDN bloqueados o CORS
-
-**Solución**:
-```
-- Verificar que CDNs carguen (Network tab)
-- Verificar consola para errores
-- CDNs usados:
-  ✅ Firebase (gstatic.com)
-  ✅ Chart.js (jsdelivr.net)
-  ✅ SheetJS (sheetjs.com)
-  ✅ jsPDF (cdnjs.cloudflare.com)
-```
-
----
-
-## 📊 Monitoreo Post-Deploy
-
-### Google Analytics (Opcional)
-
-Agregar en `index.html` antes de `</head>`:
-
-```html
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
-```
-
-### Firebase Analytics (Integrado)
-
-Ya incluido en Firebase SDK. Ver en:
-```
-Firebase Console → Analytics → Dashboard
-```
-
----
-
-## 🚀 Deploy con Dominio Personalizado
-
-### En Netlify
-
-1. **Comprar dominio** (Namecheap, GoDaddy, etc.)
-
-2. **Configurar DNS**:
-   ```
-   Type: CNAME
-   Name: www
-   Value: tu-sitio.netlify.app
-   ```
-
-3. **En Netlify**:
-   ```
-   Site settings → Domain management → Add custom domain
-   Agregar: www.tudominio.com
-   ```
-
-4. **HTTPS automático** (Netlify genera certificado SSL)
-
-### En Firebase Hosting
+## Instalar herramientas del proyecto
 
 ```bash
-firebase hosting:channel:deploy live
-firebase hosting:site:list
-firebase hosting:site:get
+npm install
 ```
 
-Seguir wizard en consola Firebase.
+## Ejecutar KenFinance localmente
+
+```bash
+npm run dev
+```
+
+El proyecto utiliza un servidor estático mediante:
+
+```text
+npx -y serve .
+```
+
+## Ejecutar lint
+
+```bash
+npm run lint
+```
+
+Antes de desplegar conviene comprobar manualmente:
+
+```text
+Login
+Registro
+Google Login
+Recuperación de contraseña
+Perfil
+Cuentas
+Ingresos
+Gastos
+Edición
+Eliminación
+Filtros
+Gráficos
+Excel
+PDF
+Tema claro/oscuro
+PWA
+```
 
 ---
 
-## 📱 Extras: App Stores (Futuro)
+# 6. Despliegue principal en Vercel
 
-### PWA Builder (Convertir a App Nativa)
+Vercel es el hosting principal utilizado por KenFinance v1.0.
 
-1. Ir a [pwabuilder.com](https://www.pwabuilder.com/)
-2. Ingresar URL de tu app
-3. Descargar paquetes para:
-   - Google Play Store (Android)
-   - Microsoft Store (Windows)
-   - App Store (iOS requiere Mac)
+## Flujo recomendado
 
----
+```text
+Cambios locales
+      │
+      ▼
+Commit
+      │
+      ▼
+Push a GitHub
+      │
+      ▼
+Vercel detecta cambios
+      │
+      ▼
+Nuevo deployment
+```
 
-## 🎯 Recomendaciones Finales
+## Importación inicial
 
-### Para Producción Seria
+Al importar el repositorio en Vercel:
 
-1. **Dominio Personalizado** - Más profesional
-2. **Google Analytics** - Métricas de uso
-3. **Error Tracking** - Sentry.io o LogRocket
-4. **Backups** - Exportar Firestore periódicamente
-5. **Monitoring** - UptimeRobot para verificar uptime
-6. **CDN** - Cloudflare (gratis) para mejor performance
+```text
+Framework Preset: Other
+Root Directory: ./
+```
 
-### Performance
+KenFinance v1.0 no requiere un proceso de compilación frontend.
 
-- ✅ Minificar HTML/CSS/JS (Netlify lo hace automático)
-- ✅ Comprimir imágenes (ya optimizadas)
-- ✅ Lazy load de librerías (ya implementado)
-- ✅ Service Worker (ya implementado)
+La aplicación se sirve directamente desde los archivos existentes en el repositorio.
 
----
-
-## 📞 Soporte
-
-Si tienes problemas:
-
-1. **Revisar consola** (F12)
-2. **Ver errores de Firebase** (Console)
-3. **Verificar Firestore Rules**
-4. **Verificar Authorized Domains**
+No existe una carpeta `dist/` generada para esta versión.
 
 ---
 
-## ✅ Checklist Final
+# 7. Configuración actual de Vercel
 
-Antes de decir "está en producción":
+El archivo:
 
-- [ ] Deploy exitoso en plataforma elegida
-- [ ] HTTPS verificado (candado verde)
-- [ ] PWA instalable
-- [ ] Firebase Authorized Domains configurado
-- [ ] Login funciona
-- [ ] Todas las funcionalidades testeadas
-- [ ] Performance >90 en Lighthouse
-- [ ] Probado en 3+ navegadores
-- [ ] Probado en móvil
-- [ ] Dominio personalizado (opcional)
-- [ ] Analytics configurado (opcional)
+```text
+vercel.json
+```
+
+contiene la configuración utilizada por el despliegue.
+
+## Rewrite SPA
+
+Todas las rutas se redirigen a:
+
+```text
+/index.html
+```
+
+Conceptualmente:
+
+```text
+/(.*)
+   ↓
+/index.html
+```
+
+Esto permite mantener el comportamiento de aplicación de una sola página.
 
 ---
 
-**¡Tu app está lista para el mundo! 🌍🚀**
+## Caché
 
-**Deploy recomendado**: **Netlify** (más fácil y rápido)
+`index.html` y `service-worker.js` utilizan:
+
+```text
+Cache-Control:
+no-cache, no-store, must-revalidate
+```
+
+Esto evita conservar versiones antiguas de estos dos archivos críticos.
+
+---
+
+## Encabezados
+
+Vercel configura encabezados de seguridad como:
+
+```text
+X-Content-Type-Options
+X-Frame-Options
+Referrer-Policy
+Permissions-Policy
+Content-Security-Policy
+```
+
+Los detalles se encuentran centralizados en `vercel.json`.
+
+---
+
+# 8. Firebase utilizado por producción
+
+La configuración Firebase utilizada por KenFinance se encuentra en:
+
+```text
+js/firebase/runtime-config.js
+```
+
+El proyecto configurado actualmente utiliza:
+
+```text
+Project ID:
+konteo-fiance
+```
+
+El mismo proyecto aparece como proyecto predeterminado en:
+
+```text
+.firebaserc
+```
+
+Por tanto:
+
+```text
+runtime-config.js
+        │
+        └── konteo-fiance
+
+.firebaserc
+        │
+        └── konteo-fiance
+```
+
+deben permanecer coherentes.
+
+---
+
+# 9. Firebase Authentication
+
+KenFinance utiliza Firebase Authentication para:
+
+```text
+Email + contraseña
+Google
+Recuperación de contraseña
+Sesión de usuario
+```
+
+Después de desplegar en un dominio nuevo, debe comprobarse que ese dominio esté autorizado en la configuración de Firebase Authentication.
+
+Si el dominio no está permitido, determinadas operaciones de autenticación pueden fallar.
+
+---
+
+# 10. Cloud Firestore
+
+Cloud Firestore almacena los datos de KenFinance.
+
+Entre ellos:
+
+```text
+usuarios
+perfil
+cuentas/assets
+ingresos
+gastos
+plan financiero
+```
+
+La configuración del frontend apunta al proyecto Firebase definido en `runtime-config.js`.
+
+---
+
+# 11. Firestore Rules e índices
+
+Los archivos:
+
+```text
+firestore.rules
+firestore.indexes.json
+```
+
+se encuentran asociados desde:
+
+```text
+firebase.json
+```
+
+mediante:
+
+```text
+firestore:
+  rules   → firestore.rules
+  indexes → firestore.indexes.json
+```
+
+Cuando se realizan cambios en reglas o índices, deben desplegarse explícitamente mediante Firebase CLI.
+
+## Desplegar reglas
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+## Desplegar índices
+
+```bash
+firebase deploy --only firestore:indexes
+```
+
+## Desplegar ambos
+
+```bash
+firebase deploy --only firestore
+```
+
+Las reglas de Firestore forman parte de la seguridad real de la aplicación y deben revisarse antes de considerar un release completamente cerrado.
+
+---
+
+# 12. Firebase Hosting como alternativa
+
+Aunque Vercel es el hosting principal de v1.0, el repositorio también mantiene configuración para Firebase Hosting.
+
+El archivo:
+
+```text
+firebase.json
+```
+
+utiliza:
+
+```text
+public: "."
+```
+
+Por tanto Firebase Hosting puede servir directamente la raíz del proyecto.
+
+---
+
+## Archivos ignorados por Firebase Hosting
+
+La configuración excluye, entre otros:
+
+```text
+firebase.json
+firestore.rules
+firestore.indexes.json
+README.md
+DEPLOYMENT.md
+GUIA_TECNICA_COMPLETA.md
+vercel.json
+_redirects
+node_modules
+archivos ocultos
+```
+
+---
+
+## Rewrite
+
+Firebase Hosting también redirige todas las rutas hacia:
+
+```text
+/index.html
+```
+
+manteniendo el comportamiento SPA.
+
+---
+
+## Despliegue mediante Firebase Hosting
+
+Después de autenticar Firebase CLI:
+
+```bash
+firebase login
+```
+
+puede comprobarse el proyecto actual:
+
+```bash
+firebase use
+```
+
+El proyecto predeterminado debe corresponder a:
+
+```text
+konteo-fiance
+```
+
+Para desplegar únicamente Hosting:
+
+```bash
+firebase deploy --only hosting
+```
+
+Firebase Hosting se mantiene como alternativa y no como hosting principal de KenFinance v1.0.
+
+---
+
+# 13. PWA en producción
+
+KenFinance v1.0 incluye soporte PWA mediante:
+
+```text
+manifest.json
+service-worker.js
+icons/
+```
+
+Para que la instalación funcione correctamente, producción debe utilizar:
+
+```text
+HTTPS
+```
+
+Vercel proporciona HTTPS para los deployments publicados.
+
+---
+
+# 14. Service Worker y caché
+
+El Service Worker actual utiliza:
+
+```text
+CACHE_NAME = KenFinance-v1.0.0
+```
+
+y precarga recursos principales de la aplicación.
+
+Entre ellos:
+
+```text
+/
+index.html
+css/styles.css
+manifest.json
+js/app.js
+js/state.js
+módulos Firebase
+servicios principales
+módulos UI
+iconos principales
+```
+
+---
+
+## Estrategia de navegación
+
+Para solicitudes de navegación:
+
+```text
+Network first
+        │
+        └── si falla
+              ↓
+          /index.html
+```
+
+Esto permite que la aplicación pueda seguir abriendo su interfaz básica cuando la red no responde y los recursos necesarios ya están disponibles.
+
+---
+
+## Recursos estáticos
+
+Para otros recursos GET:
+
+```text
+Cache first
+    │
+    └── si no existe
+          ↓
+       Network
+```
+
+---
+
+## Firebase
+
+Las solicitudes detectadas como relacionadas con Firebase no se interceptan mediante esta estrategia de caché.
+
+Esto evita tratar las comunicaciones con Firebase como archivos estáticos.
+
+---
+
+## Actualización de caché
+
+Cuando cambia el nombre:
+
+```text
+KenFinance-v1.0.0
+```
+
+el Service Worker puede eliminar caches anteriores durante `activate`.
+
+Si se realizan cambios importantes a los recursos precargados, debe considerarse actualizar la versión de `CACHE_NAME`.
+
+---
+
+# 15. Manifest
+
+El archivo:
+
+```text
+manifest.json
+```
+
+define la identidad PWA.
+
+Actualmente utiliza:
+
+```text
+name:
+KenFinance — Mis Finanzas
+
+short_name:
+KenFinance
+
+display:
+standalone
+
+orientation:
+portrait-primary
+```
+
+También incluye accesos rápidos para:
+
+```text
+Nuevo Ingreso
+Nuevo Gasto
+```
+
+y los iconos desde:
+
+```text
+72×72
+```
+
+hasta:
+
+```text
+512×512
+```
+
+---
+
+# 16. Encabezados de seguridad
+
+Vercel y Firebase Hosting contienen configuraciones equivalentes para varios encabezados.
+
+Entre ellos:
+
+## MIME sniffing
+
+```text
+X-Content-Type-Options: nosniff
+```
+
+## Embedding en frames
+
+```text
+X-Frame-Options: DENY
+```
+
+## Referrer Policy
+
+```text
+Referrer-Policy:
+strict-origin-when-cross-origin
+```
+
+## Permissions Policy
+
+Actualmente se bloquea el acceso web a:
+
+```text
+camera
+microphone
+geolocation
+usb
+```
+
+## Content Security Policy
+
+La CSP limita:
+
+```text
+scripts
+estilos
+fuentes
+imágenes
+conexiones
+workers
+frames
+objetos
+formularios
+```
+
+y permite los dominios necesarios para Firebase y las bibliotecas utilizadas por KenFinance v1.0.
+
+---
+
+# 17. Actualización de producción
+
+Para publicar una nueva modificación del frontend:
+
+```bash
+git add .
+git commit -m "tipo: descripción"
+git push
+```
+
+Si Vercel continúa conectado al repositorio y rama de producción, se generará un nuevo deployment.
+
+Antes del push se recomienda:
+
+```bash
+npm run lint
+```
+
+y una prueba funcional local.
+
+---
+
+## Cambios Firebase
+
+Los cambios del frontend publicados en Vercel **no despliegan automáticamente**:
+
+```text
+firestore.rules
+firestore.indexes.json
+```
+
+Cuando se modifican estos archivos debe utilizarse Firebase CLI.
+
+Ejemplo:
+
+```bash
+firebase deploy --only firestore
+```
+
+---
+
+# 18. Rollback
+
+Vercel conserva deployments anteriores del proyecto.
+
+Si una publicación introduce un error, puede utilizarse un deployment anterior estable desde el panel de Vercel.
+
+También puede revertirse el cambio en Git:
+
+```bash
+git revert <commit>
+git push
+```
+
+La estrategia elegida dependerá del tipo de incidencia.
+
+---
+
+# 19. Checklist posterior al despliegue
+
+Después de publicar una versión debe comprobarse:
+
+```text
+[ ] La página carga mediante HTTPS
+[ ] No aparecen errores críticos en consola
+[ ] Login por email funciona
+[ ] Login Google funciona
+[ ] Logout funciona
+[ ] Perfil carga correctamente
+[ ] Firestore puede leer datos autorizados
+[ ] Firestore puede guardar datos autorizados
+[ ] Crear cuenta funciona
+[ ] Registrar ingreso funciona
+[ ] Registrar gasto funciona
+[ ] Editar movimiento funciona
+[ ] Eliminar movimiento funciona
+[ ] Saldo de cuentas se recalcula
+[ ] Gráficos cargan
+[ ] Excel se genera
+[ ] PDF se genera
+[ ] Tema claro/oscuro funciona
+[ ] manifest.json carga
+[ ] service-worker.js se registra
+[ ] PWA puede instalarse en navegador compatible
+[ ] No se está sirviendo una versión antigua desde caché
+```
+
+---
+
+# 20. Problemas comunes
+
+## La aplicación muestra una versión antigua
+
+Posible causa:
+
+```text
+Service Worker / caché
+```
+
+Acciones recomendadas:
+
+1. recargar la aplicación;
+2. comprobar el Service Worker;
+3. comprobar la versión de `CACHE_NAME`;
+4. revisar que `index.html` y `service-worker.js` no estén siendo cacheados por el hosting.
+
+---
+
+## Firebase Authentication falla después del deployment
+
+Comprobar:
+
+```text
+dominio autorizado
+authDomain
+configuración del proyecto Firebase
+```
+
+---
+
+## Firestore devuelve `permission-denied`
+
+Comprobar:
+
+```text
+firestore.rules
+usuario autenticado
+ruta consultada
+reglas desplegadas actualmente
+```
+
+Modificar las validaciones JavaScript del frontend no sustituye las reglas de Firestore.
+
+---
+
+## La PWA no se actualiza
+
+Comprobar:
+
+```text
+CACHE_NAME
+service-worker.js
+Cache-Control
+DevTools → Application → Service Workers
+```
+
+---
+
+## Una ruta carga 404
+
+Vercel y Firebase Hosting están configurados para enviar rutas de aplicación a:
+
+```text
+/index.html
+```
+
+Si se modifica la configuración de hosting, debe conservarse el rewrite necesario para el comportamiento SPA.
+
+---
+
+# 21. Netlify y `_redirects`
+
+El repositorio todavía contiene:
+
+```text
+_redirects
+```
+
+Este archivo corresponde a compatibilidad con Netlify.
+
+Netlify **no es el hosting principal de KenFinance v1.0**.
+
+Por tanto, la presencia de `_redirects` no significa que producción utilice Netlify.
+
+Puede mantenerse mientras se quiera conservar esa opción alternativa.
+
+---
+
+# 22. Estado del despliegue v1.0
+
+La arquitectura de producción documentada para KenFinance v1.0 es:
+
+```text
+GitHub
+   │
+   ▼
+Vercel
+   │
+   ▼
+KenFinance
+HTML + CSS + JavaScript
+   │
+   ├── manifest.json
+   ├── service-worker.js
+   │
+   ▼
+Firebase
+├── Authentication
+└── Cloud Firestore
+```
+
+## Hosting principal
+
+```text
+Vercel
+```
+
+## Backend
+
+```text
+Firebase
+```
+
+## Proyecto Firebase configurado
+
+```text
+konteo-fiance
+```
+
+## Hosting alternativo configurado
+
+```text
+Firebase Hosting
+```
+
+## Compatibilidad adicional presente
+
+```text
+Netlify (_redirects)
+```
+
+---
+
+# 📌 Alcance de esta documentación
+
+Esta guía corresponde exclusivamente a:
+
+**KenFinance v1.0 — Fase 1**
+
+Documenta los archivos de despliegue existentes en esta versión y no incluye todavía cambios de arquitectura o despliegue correspondientes a versiones posteriores.

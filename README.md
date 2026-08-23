@@ -2,21 +2,36 @@
 
 > **Gestión de finanzas personales simple, visual y organizada.**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Estado](https://img.shields.io/badge/Estado-Preparada%20para%20release-yellow)
+![Versión](https://img.shields.io/badge/Versión-1.0.0-blue)
 ![PWA](https://img.shields.io/badge/PWA-Instalable-blueviolet)
 ![Firebase](https://img.shields.io/badge/Firebase-Authentication%20%2B%20Firestore-orange)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Deploy](https://img.shields.io/badge/Deploy-Vercel-black)
+![Licencia](https://img.shields.io/badge/Licencia-MIT-green)
 
 ---
 
 ## 📌 Descripción
 
-**KenFinance** es una aplicación web progresiva (**PWA**) orientada a la gestión de finanzas personales.
+**KenFinance** es una aplicación web de finanzas personales orientada al registro, organización y análisis de ingresos, gastos y cuentas financieras.
 
-Permite registrar ingresos y gastos, organizar el dinero por cuentas, analizar el comportamiento financiero, establecer objetivos de ingresos y límites de gasto, consultar métricas financieras y exportar información mediante reportes en Excel y PDF.
+La versión **1.0.0** representa el cierre de la **Fase 1** del proyecto y consolida una base funcional con:
 
-La versión **1.0.0** representa la primera base estable del proyecto y establece la arquitectura sobre la que se desarrollarán futuras funcionalidades de KenFinance.
+- autenticación;
+- perfil de usuario;
+- cuentas financieras;
+- ingresos y gastos;
+- saldo dinámico por cuenta;
+- filtros y búsqueda;
+- gráficos;
+- indicadores financieros;
+- plan financiero;
+- exportación Excel/PDF;
+- PWA;
+- despliegue web con Vercel;
+- persistencia mediante Firebase.
+
+KenFinance v1.0 utiliza **HTML, CSS y JavaScript modular**, sin framework frontend.
 
 ---
 
@@ -24,312 +39,413 @@ La versión **1.0.0** representa la primera base estable del proyecto y establec
 
 ### 🔐 Autenticación
 
-- Registro mediante correo electrónico y contraseña.
-- Inicio de sesión mediante correo electrónico.
+- Registro con correo y contraseña.
+- Inicio de sesión con correo y contraseña.
 - Inicio de sesión con Google.
 - Recuperación de contraseña.
 - Cierre de sesión.
-- Gestión básica del perfil del usuario.
+- Persistencia de sesión mediante Firebase Authentication.
 
 ---
 
 ### 👤 Perfil de usuario
 
-El usuario puede registrar y actualizar información personal como:
+KenFinance permite almacenar información de perfil como:
 
-- Nombre.
-- Teléfono.
-- Fecha de nacimiento.
-- Ciudad.
-- País.
-- Ocupación.
-- Moneda principal.
-- Objetivo de ahorro mensual.
-- Correo alternativo de recuperación.
-- Contacto de emergencia.
-- Biografía.
+- nombre;
+- teléfono;
+- fecha de nacimiento;
+- ciudad;
+- país;
+- ocupación;
+- moneda base;
+- objetivo mensual;
+- biografía;
+- correo de recuperación;
+- contacto de emergencia.
 
-La aplicación también calcula el porcentaje de completitud del perfil.
+También calcula el porcentaje de completitud del perfil.
 
----
-
-## 💳 Gestión de cuentas
-
-KenFinance permite registrar las cuentas donde el usuario mantiene su dinero.
-
-Tipos disponibles:
-
-- 🏦 Cuenta bancaria.
-- 📱 Billetera digital.
-- 💵 Efectivo.
-- 💳 Tarjeta de crédito.
-- ₿ Criptomonedas.
-
-Cada cuenta puede utilizar una de las siguientes monedas:
-
-- PEN — Sol peruano.
-- USD — Dólar estadounidense.
-- EUR — Euro.
-
-Las cuentas muestran su saldo calculado a partir de los movimientos asociados.
-
-### Saldo inicial
-
-Al crear una cuenta puede definirse un saldo inicial.
-
-Este saldo no se almacena como un valor fijo dentro de la cuenta, sino que se registra como un **movimiento de ingreso especial**, permitiendo mantener consistencia con el historial financiero.
-
-### Eliminación de cuentas
-
-Las cuentas no se eliminan físicamente de Firestore.
-
-KenFinance utiliza **archivado lógico**, marcándolas como inactivas.
-
-Además, una cuenta no puede archivarse mientras mantenga un saldo diferente de cero.
+Parte de esta información puede utilizarse para personalizar los reportes generados.
 
 ---
 
-## 💵 Ingresos
+### 💳 Cuentas financieras
 
-Los ingresos pueden registrar:
+Las cuentas se representan internamente mediante `assets`.
 
-- Monto.
-- Fecha.
-- Fuente.
-- Cuenta de destino.
-- Etiquetas.
-- Nota.
+Tipos disponibles en v1.0:
 
-Fuentes disponibles actualmente:
-
-- Salario.
-- Freelance.
-- Negocio.
-- Otros.
-
-Todo ingreso debe estar asociado a una cuenta mediante su identificador interno.
-
----
-
-## 💸 Gastos
-
-Los gastos pueden registrar:
-
-- Monto.
-- Fecha.
-- Cuenta de origen.
-- Categoría.
-- Comercio o proveedor.
-- Método de pago.
-- Prioridad.
-- Nota.
-
-### Categorías actuales
-
-- 🟢 **Fijo**
-- 🟡 **Necesario**
-- 🔴 **Antojo**
-
-### Métodos de pago
-
-- Efectivo.
-- Tarjeta de débito.
-- Tarjeta de crédito.
-- Transferencia.
+- Cuenta bancaria.
 - Billetera digital.
+- Efectivo.
+- Tarjeta de crédito.
+- Criptomonedas.
 
-### Prioridad
+Monedas disponibles:
 
-- Alta.
-- Media.
-- Baja.
+- PEN.
+- USD.
+- EUR.
 
----
+Cada movimiento se vincula a una cuenta real mediante:
 
-## 📊 Dashboard financiero
-
-El dashboard muestra información correspondiente al periodo seleccionado.
-
-Incluye:
-
-- Balance.
-- Total de ingresos.
-- Total de gastos.
-- Tasa de ahorro.
-- Runway estimado.
-- Categoría de gasto dominante.
-- Burn diario.
-- Anomalías detectadas.
-
-También incluye un panel estratégico con:
-
-- Proyección de cierre.
-- Desviación frente al objetivo.
-- Score de salud financiera.
-- Progreso respecto al límite mensual de gasto.
+```text
+assetId
+```
 
 ---
 
-## 🎯 Plan financiero
+### 💰 Saldo inicial
 
-El usuario puede establecer:
+Al crear una cuenta se puede registrar un saldo inicial.
 
-- **Ingreso objetivo mensual.**
-- **Límite de gasto mensual.**
+KenFinance no mantiene ese saldo como un valor independiente dentro de la cuenta.
 
-A partir de estos valores KenFinance genera diferentes indicadores para ayudar a visualizar el comportamiento financiero durante el periodo.
+En su lugar crea un movimiento especial:
+
+```text
+Saldo inicial
++
+assetId
++
+isInitialBalance: true
+```
+
+Esto permite mantener consistencia entre el saldo de la cuenta y su historial.
+
+El saldo inicial:
+
+- sí aumenta el saldo de la cuenta;
+- no se contabiliza como ingreso real en el dashboard;
+- no se contabiliza como ingreso real en los reportes.
 
 ---
 
-## 🔎 Búsqueda, filtros y ordenamiento
+### 📥 Ingresos
 
-KenFinance permite consultar los movimientos mediante diferentes herramientas.
+Los ingresos pueden incluir:
 
-### Periodos
+- monto;
+- fecha;
+- fuente;
+- cuenta;
+- etiquetas;
+- nota.
+
+Cada ingreso aumenta el saldo de la cuenta asociada.
+
+---
+
+### 📤 Gastos
+
+Los gastos pueden incluir:
+
+- monto;
+- fecha;
+- cuenta;
+- categoría;
+- comercio o proveedor;
+- método de pago;
+- prioridad;
+- nota.
+
+Categorías actuales:
+
+- 🟢 Fijo.
+- 🟡 Necesario.
+- 🔴 Antojo.
+
+Cada gasto reduce el saldo de la cuenta asociada.
+
+---
+
+### 🏦 Saldo por cuenta
+
+El saldo no se guarda como un número independiente.
+
+Se calcula mediante:
+
+```text
+Saldo de cuenta
+=
+Σ ingresos
+-
+Σ gastos
+```
+
+Esto mantiene una relación directa entre:
+
+```text
+Historial
+↕
+Saldo calculado
+```
+
+---
+
+### 🌍 Multimoneda
+
+KenFinance v1.0 permite cuentas en:
+
+```text
+PEN
+USD
+EUR
+```
+
+Los saldos se mantienen separados por moneda.
+
+Ejemplo:
+
+```text
+PEN    S/ 650
+USD    $ 30
+EUR    € 20
+```
+
+La versión 1.0 **no realiza conversión automática de monedas**.
+
+---
+
+### 📊 Dashboard
+
+El dashboard calcula:
+
+```text
+Balance
+=
+Ingresos del período
+-
+Gastos del período
+```
+
+También muestra información relacionada con:
+
+- ingresos;
+- gastos;
+- balance;
+- cuentas;
+- indicadores financieros;
+- plan financiero;
+- gráficos;
+- movimientos.
+
+---
+
+### 📅 Filtros temporales
+
+Filtros disponibles:
 
 - Hoy.
-- Últimos 7 días.
-- Mes actual.
+- 7 días.
+- Mes.
 - Rango personalizado.
 
-### Búsqueda
+---
 
-La búsqueda permite encontrar movimientos utilizando el contenido de sus notas o montos.
+### 🔍 Búsqueda y ordenamiento
 
-Se utiliza un sistema de **debounce** para evitar ejecuciones innecesarias mientras el usuario escribe.
+La búsqueda permite localizar movimientos principalmente mediante:
 
-### Filtro por categoría
+- nota;
+- monto.
 
-Es posible mostrar:
+También existe filtro por categoría.
 
-- Todas las categorías.
-- Ingresos.
-- Gastos fijos.
-- Gastos necesarios.
-- Antojos.
-
-### Ordenamiento
-
-Los movimientos pueden ordenarse por:
+Ordenamientos disponibles:
 
 - Más recientes.
 - Más antiguos.
 - Mayor monto.
 - Menor monto.
 
-Algunas preferencias de interfaz se conservan mediante `localStorage`.
+Parte de estas preferencias se conserva mediante `localStorage`.
 
 ---
 
-## 📈 Gráficos
+### 📈 Gráficos
 
-KenFinance utiliza **Chart.js** para representar visualmente la información financiera.
+KenFinance v1.0 utiliza **Chart.js**.
 
-Actualmente incluye:
+Gráficos disponibles:
 
-### Ingresos vs Gastos
+#### Ingresos vs Gastos
 
-Comparación gráfica entre los ingresos y gastos del periodo seleccionado.
+Compara los totales del período seleccionado.
 
-### Gastos por categoría
+#### Distribución de gastos
 
-Distribución de los gastos entre:
+Muestra la distribución entre:
 
-- Fijo.
-- Necesario.
-- Antojo.
+```text
+Fijo
+Necesario
+Antojo
+```
 
 ---
 
-## 📤 Exportación de reportes
+### 🧠 Indicadores financieros
 
-KenFinance permite generar reportes:
+La aplicación incluye indicadores como:
 
-- Semanales.
-- Mensuales.
+- tasa de ahorro;
+- runway estimado;
+- categoría dominante;
+- burn diario;
+- indicadores relacionados con el plan financiero.
 
-### Excel
+---
 
-La exportación Excel utiliza **SheetJS**.
+### 🎯 Plan financiero
 
-El archivo generado contiene:
+El plan financiero permite configurar:
 
-1. **Resumen**
-2. **Ingresos**
-3. **Gastos**
-4. **Análisis por categoría**
+```text
+Objetivo de ingresos
+Límite de gastos
+```
 
-Incluye información como:
+Estos valores se utilizan para generar información relacionada con el desempeño financiero del usuario.
 
-- Ingresos totales.
-- Gastos totales.
-- Balance.
-- Tasa de ahorro.
-- Distribución de gastos.
-- Número de transacciones.
+---
 
-### PDF
+## 📄 Reportes
 
-La exportación PDF utiliza **jsPDF**.
+KenFinance permite exportar información financiera en:
+
+```text
+Excel
+PDF
+```
+
+Períodos disponibles:
+
+- semanal;
+- mensual.
+
+---
+
+### 📊 Excel
+
+La exportación utiliza **SheetJS**.
+
+El archivo incluye hojas como:
+
+```text
+Resumen
+Ingresos
+Gastos
+Analisis
+```
+
+Los saldos iniciales se excluyen de los ingresos reales.
+
+---
+
+### 📑 PDF
+
+La exportación utiliza **jsPDF**.
+
+El reporte incluye:
+
+- período;
+- fecha de generación;
+- información del usuario;
+- balance;
+- ingresos;
+- gastos;
+- movimientos;
+- paginación cuando es necesaria.
+
+Los saldos iniciales también se excluyen de los ingresos reales.
+
+---
+
+## 🎨 Interfaz
+
+KenFinance v1.0 incluye:
+
+- tema claro;
+- tema oscuro;
+- detección del tema del sistema;
+- diseño responsive;
+- modales;
+- toasts;
+- estados de carga;
+- interfaz adaptable a escritorio y móvil.
+
+La preferencia del tema se guarda localmente.
+
+---
+
+## 📱 PWA
+
+KenFinance puede instalarse como Progressive Web App en navegadores compatibles.
 
 Incluye:
 
-- Balance.
-- Ingresos.
-- Gastos.
-- Movimientos del periodo.
-- Fecha de generación.
-- Paginación automática.
+```text
+manifest.json
+service-worker.js
+icons/
+```
 
-Las librerías de exportación se cargan solamente cuando son necesarias para reducir la carga inicial de la aplicación.
+El Service Worker mantiene en caché recursos principales de la interfaz.
 
----
+> KenFinance v1.0 no debe considerarse una aplicación completamente offline-first. Las principales operaciones de escritura en Firebase requieren conectividad.
 
-## 🌓 Tema claro y oscuro
+El manifest también incluye accesos rápidos para:
 
-KenFinance dispone de:
-
-- Tema claro.
-- Tema oscuro.
-- Detección inicial de la preferencia del sistema.
-
-La selección del usuario se guarda localmente para mantenerla en futuras sesiones.
+- Nuevo Ingreso.
+- Nuevo Gasto.
 
 ---
 
-## 📱 Progressive Web App
+## 🛠️ Tecnologías
 
-KenFinance funciona como una **Progressive Web App (PWA)**.
+### Frontend
 
-Incluye:
+- HTML5.
+- CSS3.
+- JavaScript ES Modules.
 
-- `manifest.json`.
+### Backend / BaaS
+
+- Firebase Authentication.
+- Cloud Firestore.
+
+### Gráficos
+
+- Chart.js.
+
+### Exportación
+
+- SheetJS.
+- jsPDF.
+
+### PWA
+
+- Web App Manifest.
 - Service Worker.
-- Iconos para diferentes resoluciones.
-- Posibilidad de instalación desde navegadores compatibles.
-- Caché de recursos.
-- Detección de nuevas versiones.
 
-Cuando existe una nueva versión del Service Worker, la aplicación puede solicitar al usuario recargar para actualizar KenFinance.
+### Desarrollo
 
-Durante desarrollo local, el Service Worker se desactiva para evitar problemas derivados de caché antigua.
+- Node.js.
+- npm.
+- ESLint.
+- `serve`.
 
----
+### Hosting
 
-## 🌐 Conectividad
-
-KenFinance detecta si el dispositivo está:
-
-- Online.
-- Offline.
-
-Las operaciones que requieren escritura en Firebase se bloquean cuando no existe conexión para evitar operaciones incompletas o inconsistentes.
+- **Vercel** — hosting principal.
+- Firebase Hosting — alternativa configurada.
+- Netlify — compatibilidad adicional mediante `_redirects`.
 
 ---
 
-# 🏗️ Arquitectura
-
-KenFinance utiliza una arquitectura modular basada en **JavaScript ES Modules**.
+## 🏗️ Arquitectura
 
 ```text
 KenFinance/
@@ -337,34 +453,20 @@ KenFinance/
 ├── index.html
 ├── manifest.json
 ├── service-worker.js
-├── vercel.json
-│
 ├── firebase.json
 ├── firestore.rules
 ├── firestore.indexes.json
-│
+├── vercel.json
 ├── package.json
-├── package-lock.json
-├── eslint.config.cjs
-│
-├── README.md
 ├── DEPLOYMENT.md
 ├── GUIA_TECNICA_COMPLETA.md
-├── privacy.html
-├── terms.html
+├── CHANGELOG.md
 │
 ├── css/
 │   └── styles.css
 │
 ├── icons/
-│   ├── icon-72x72.png
-│   ├── icon-96x96.png
-│   ├── icon-128x128.png
-│   ├── icon-144x144.png
-│   ├── icon-152x152.png
-│   ├── icon-192x192.png
-│   ├── icon-384x384.png
-│   └── icon-512x512.png
+│   └── ...
 │
 └── js/
     ├── app.js
@@ -390,132 +492,69 @@ KenFinance/
 
 ---
 
-## 🧩 Organización del código
+## 🧩 Módulos principales
 
 ### `js/app.js`
 
-Punto de entrada principal de la aplicación.
+Orquestador principal.
 
-Se encarga principalmente de:
+Coordina:
 
-- Inicialización.
-- Coordinación entre módulos.
-- Eventos de interfaz.
-- Gestión de cuentas.
-- Gestión de movimientos.
-- Perfil.
-- Filtros.
-- Autenticación.
-- Exportaciones.
-- Inicialización de la PWA.
-
----
+- autenticación;
+- perfil;
+- cuentas;
+- movimientos;
+- filtros;
+- dashboard;
+- plan;
+- exportaciones;
+- tema;
+- conectividad;
+- Service Worker.
 
 ### `js/state.js`
 
-Contiene el estado central de la aplicación.
-
-Administra información como:
-
-- Usuario actual.
-- Filtro seleccionado.
-- Estado de conectividad.
-- Ordenamiento.
-- Periodo de exportación.
-- Rango personalizado.
-- Configuración del plan financiero.
-- Perfil.
-
-También conserva determinadas preferencias mediante `localStorage`.
-
----
+Mantiene el estado compartido del frontend.
 
 ### `js/services/authService.js`
 
-Abstrae las operaciones relacionadas con Firebase Authentication:
-
-- Login.
-- Registro.
-- Login con Google.
-- Logout.
-- Recuperación de contraseña.
-- Actualización del nombre del usuario.
-
----
+Abstrae Firebase Authentication.
 
 ### `js/services/dbService.js`
 
-Centraliza las operaciones con Cloud Firestore.
-
-Gestiona:
-
-- Usuarios.
-- Transacciones.
-- Plan financiero.
-- Cuentas.
-- Metas preparadas a nivel de datos.
-- Cálculo de saldos.
-
----
+Centraliza el acceso a Cloud Firestore.
 
 ### `js/services/exportService.js`
 
-Gestiona la generación de:
-
-- Excel.
-- PDF.
-
-Las dependencias se cargan mediante **lazy loading** únicamente cuando se solicita una exportación.
-
----
+Gestiona Excel y PDF.
 
 ### `js/ui/`
 
-Contiene módulos especializados en presentación e interacción:
+Agrupa responsabilidades de interfaz:
 
-```text
-charts.js
-helpers.js
-insights.js
-modals.js
-render.js
-toast.js
-```
-
-Esta separación evita concentrar toda la lógica de interfaz en `app.js`.
+- gráficos;
+- helpers;
+- insights;
+- modales;
+- renderizado;
+- toasts.
 
 ---
 
-# 🔥 Firebase
+## 🗃️ Modelo de datos
 
-KenFinance utiliza Firebase como Backend as a Service.
-
-### Firebase Authentication
-
-Gestiona la identidad y sesión de los usuarios.
-
-### Cloud Firestore
-
-Almacena los datos financieros.
-
-La estructura general utilizada actualmente sigue este modelo:
+Estructura principal:
 
 ```text
 users/
 └── {uid}
-    ├── información del perfil
-    │
-    ├── assets/
-    │   └── {assetId}
-    │
-    └── goals/
-        └── {goalId}
+    └── assets/
+        └── {assetId}
 
 transactions/
 └── {uid}
     ├── income/
     │   └── {transactionId}
-    │
     └── expenses/
         └── {transactionId}
 
@@ -523,111 +562,47 @@ plans/
 └── {uid}
 ```
 
-Cada movimiento puede relacionarse con una cuenta mediante:
-
-```text
-assetId
-```
+Los datos se relacionan con el usuario autenticado mediante su `uid`.
 
 ---
 
-## 💰 Cálculo de saldos
+## 🚀 Desarrollo local
 
-KenFinance no mantiene el saldo de una cuenta como una cifra independiente que deba actualizarse manualmente.
-
-El saldo se calcula utilizando sus movimientos:
-
-```text
-Saldo =
-Ingresos asociados
--
-Gastos asociados
-```
-
-Esto reduce el riesgo de inconsistencias entre el historial y el saldo de una cuenta.
-
----
-
-# 🛠️ Tecnologías
-
-### Frontend
-
-- HTML5.
-- CSS3.
-- JavaScript ES6+.
-- JavaScript Modules.
-
-### Backend / BaaS
-
-- Firebase Authentication.
-- Cloud Firestore.
-
-### Visualización
-
-- Chart.js.
-
-### Reportes
-
-- SheetJS.
-- jsPDF.
-
-### PWA
-
-- Web App Manifest.
-- Service Worker.
-
-### Hosting
-
-- Vercel.
-
----
-
-# ⚙️ Desarrollo local
-
-## Requisitos
-
-Se recomienda disponer de:
+### Requisitos
 
 - Git.
 - Node.js.
 - npm.
 - Navegador moderno.
 
----
-
-## 1. Clonar el repositorio
+### Clonar repositorio
 
 ```bash
 git clone https://github.com/KenLozano/KenFinance.git
-```
-
-Entrar al proyecto:
-
-```bash
 cd KenFinance
 ```
 
----
+> Si el repositorio es privado, GitHub solicitará autenticación.
 
-## 2. Instalar dependencias
+### Instalar
 
 ```bash
 npm install
 ```
 
----
-
-## 3. Ejecutar entorno local
+### Ejecutar
 
 ```bash
 npm run dev
 ```
 
-El comando utiliza un servidor HTTP local para servir el proyecto.
+El proyecto utiliza:
 
----
+```text
+npx -y serve .
+```
 
-## 4. Ejecutar ESLint
+### Lint
 
 ```bash
 npm run lint
@@ -635,220 +610,174 @@ npm run lint
 
 ---
 
-# 🔧 Configuración de Firebase
-
-KenFinance necesita una configuración válida de Firebase.
-
-La configuración se gestiona mediante:
-
-```text
-js/firebase/config.js
-js/firebase/runtime-config.js
-```
-
-Además deben estar habilitados los servicios utilizados por la aplicación:
-
-- Firebase Authentication.
-- Email/Password.
-- Google Authentication.
-- Cloud Firestore.
-
-Los dominios utilizados en producción deben estar configurados dentro de los dominios autorizados de Firebase Authentication.
-
----
-
-# 🚀 Deployment
-
-El despliegue principal de KenFinance utiliza:
-
-```text
-GitHub
-   ↓
-Vercel
-   ↓
-KenFinance
-   ↓
-Firebase
-```
-
-Vercel publica automáticamente nuevas versiones cuando se actualiza la rama configurada para producción.
-
-El proyecto incluye:
-
-```text
-vercel.json
-```
-
-para la configuración específica del hosting.
-
-Firebase Hosting y Netlify pueden utilizarse como alternativas, pero **Vercel es actualmente la plataforma principal del proyecto**.
-
-La documentación detallada de despliegue se encuentra en:
-
-```text
-DEPLOYMENT.md
-```
-
----
-
-# 💱 Soporte multimoneda
-
-Las cuentas pueden configurarse utilizando:
-
-- PEN.
-- USD.
-- EUR.
-
-Actualmente KenFinance mantiene separados los saldos de las cuentas según su moneda.
-
-> **Limitación v1.0:** KenFinance todavía no realiza conversión automática de divisas ni consolidación patrimonial utilizando tipos de cambio.
-
-El soporte multimoneda avanzado forma parte de la evolución futura del proyecto.
-
----
-
-# 🔒 Seguridad
+## 🔥 Configuración de Firebase
 
 KenFinance utiliza:
 
-- Firebase Authentication.
-- Firestore Security Rules.
-- Content Security Policy.
-- Validación de entradas.
-- Normalización de texto.
-- HTTPS en producción.
-- Separación de datos por usuario.
+```text
+js/firebase/runtime-config.js
+```
 
-La configuración de seguridad debe mantenerse sincronizada con la estructura utilizada en Firestore.
+para proporcionar la configuración Firebase de la aplicación web.
 
----
+La configuración debe corresponder al mismo proyecto utilizado para:
 
-# 📋 Estado del proyecto
+- Authentication;
+- Firestore;
+- reglas;
+- índices.
 
-### KenFinance v1.0.0
+Las reglas se encuentran en:
 
-La versión 1.0 establece la primera base funcional del proyecto.
+```text
+firestore.rules
+```
 
-Incluye:
+y los índices en:
 
-- ✅ Autenticación.
-- ✅ Login con Google.
-- ✅ Recuperación de contraseña.
-- ✅ Perfil de usuario.
-- ✅ Gestión de cuentas.
-- ✅ Saldo por cuenta.
-- ✅ Ingresos.
-- ✅ Gastos.
-- ✅ Filtros.
-- ✅ Búsqueda.
-- ✅ Ordenamiento.
-- ✅ Gráficos.
-- ✅ Indicadores financieros.
-- ✅ Plan financiero.
-- ✅ Exportación Excel.
-- ✅ Exportación PDF.
-- ✅ Tema claro/oscuro.
-- ✅ PWA.
-- ✅ Deployment con Vercel.
+```text
+firestore.indexes.json
+```
+
+Para información completa de despliegue consulta:
+
+**[DEPLOYMENT.md](DEPLOYMENT.md)**
 
 ---
 
-# 🗺️ Roadmap
+## 🔒 Seguridad
 
-KenFinance continuará evolucionando sobre la arquitectura establecida en v1.0.
+KenFinance utiliza:
 
-Las funcionalidades siguientes representan la dirección actual del proyecto y pueden reorganizarse conforme avance el desarrollo.
+- Firebase Authentication;
+- Firestore Security Rules;
+- validaciones frontend;
+- Content Security Policy;
+- headers de seguridad;
+- validación de montos y fechas;
+- asociación de datos mediante usuario y cuenta.
 
-## 🔜 Próximas fases
+> Las validaciones JavaScript no sustituyen las Firestore Security Rules. La autorización de acceso a datos debe controlarse desde Firebase.
 
-- [ ] Transferencias entre cuentas.
-- [ ] Evolución del sistema de categorías.
-- [ ] Categorías personalizables.
-- [ ] Sistema completo de metas financieras.
-- [ ] Mejoras en análisis e indicadores.
-- [ ] Historial financiero más avanzado.
-- [ ] Mejoras en reportes.
-- [ ] Gestión multimoneda avanzada.
-- [ ] Conversión entre monedas.
-- [ ] Mejoras de experiencia móvil.
+---
+
+## 📚 Documentación
+
+| Documento | Descripción |
+|---|---|
+| [README.md](README.md) | Introducción general al proyecto |
+| [GUIA_TECNICA_COMPLETA.md](GUIA_TECNICA_COMPLETA.md) | Arquitectura y funcionamiento técnico de v1.0 |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Configuración y proceso de despliegue |
+| [CHANGELOG.md](CHANGELOG.md) | Historial de cambios y versiones |
+
+---
+
+## ⚠️ Limitaciones conocidas de v1.0
+
+- No existe conversión automática entre monedas.
+- No existe saldo consolidado multimoneda.
+- No existe un movimiento específico para transferencias entre cuentas propias.
+- No existe todavía un módulo completo de metas financieras.
+- No existe un sistema completo de notificaciones financieras.
+- No existe todavía un sistema completo de recomendaciones.
+- No es una aplicación completamente offline-first.
+- No existe una suite automatizada completa de pruebas.
+
+---
+
+## 🗺️ Próxima etapa
+
+La siguiente etapa de KenFinance estará orientada a modernizar la experiencia y preparar el proyecto para crecer.
+
+### Fase 2 — Rediseño y modernización del frontend
+
+Objetivos previstos:
+
+- nueva interfaz responsive;
+- experiencia desktop más productiva;
+- experiencia móvil optimizada;
+- navegación por páginas;
+- nuevo Home;
+- Historial separado;
+- Portafolio separado;
+- vista de análisis gráfico;
+- nuevo gráfico temporal;
+- design system propio de KenFinance;
+- migración progresiva hacia TypeScript;
+- Angular;
+- Ionic.
+
+> Estos puntos forman parte del roadmap y **no están implementados en KenFinance v1.0**.
 
 ---
 
 ## 💡 Visión futura
 
-Entre las funcionalidades consideradas para futuras versiones se encuentran:
+KenFinance busca evolucionar gradualmente hacia una plataforma personal de gestión financiera.
 
-- [ ] Gestión de deudas.
-- [ ] Préstamos y amortizaciones.
-- [ ] Suscripciones y pagos recurrentes.
-- [ ] Calendario financiero.
-- [ ] Recordatorios.
-- [ ] Fondo de emergencia.
-- [ ] Patrimonio neto.
-- [ ] Gestión de inversiones.
-- [ ] Criptomonedas.
-- [ ] Importación de movimientos.
-- [ ] OCR para recibos.
-- [ ] Automatizaciones.
-- [ ] Análisis financiero inteligente.
-- [ ] Recomendaciones personalizadas.
-- [ ] Predicción de flujo de caja.
+Ideas previstas para etapas posteriores:
 
-El objetivo a largo plazo es que KenFinance evolucione desde un gestor de movimientos hacia una **plataforma integral de finanzas personales**.
+- transferencias entre cuentas;
+- categorías más avanzadas;
+- metas financieras;
+- deudas;
+- suscripciones;
+- calendario financiero;
+- activos con rendimiento;
+- depósitos a plazo;
+- multimoneda con tipos de cambio;
+- saldo consolidado;
+- inversiones;
+- notificaciones;
+- recomendaciones;
+- análisis avanzado;
+- automatizaciones;
+- capacidades móviles mediante tecnologías híbridas.
 
----
-
-# 🧪 Verificación
-
-Antes de publicar una nueva versión se recomienda comprobar:
-
-- Registro.
-- Login.
-- Login con Google.
-- Recuperación de contraseña.
-- Perfil.
-- Creación de cuentas.
-- Edición de cuentas.
-- Archivado de cuentas.
-- Registro de ingresos.
-- Registro de gastos.
-- Actualización de saldos.
-- Filtros.
-- Búsqueda.
-- Ordenamiento.
-- Plan financiero.
-- Gráficos.
-- Exportación Excel.
-- Exportación PDF.
-- Tema claro/oscuro.
-- Service Worker.
-- Instalación PWA.
-- ESLint.
+Estas funcionalidades se desarrollarán progresivamente y no representan compromisos de versión específicos.
 
 ---
 
-# 📄 Licencia
+## 📦 Versión
 
-Este proyecto utiliza la licencia **MIT**.
+Versión actual:
 
-Consulta el archivo de licencia del repositorio para conocer sus condiciones.
+```text
+1.0.0
+```
+
+La v1.0 representa el cierre funcional de la **Fase 1**.
+
+Consulta el historial completo en:
+
+**[CHANGELOG.md](CHANGELOG.md)**
 
 ---
 
-# 👨‍💻 Autor
+## 📄 Licencia
+
+El proyecto declara licencia:
+
+```text
+MIT
+```
+
+en `package.json`.
+
+---
+
+## 👨‍💻 Autor
 
 **Ken Lozano**
 
-GitHub: **[@KenLozano](https://github.com/KenLozano)**
+GitHub: [@KenLozano](https://github.com/KenLozano)
 
 ---
 
 <div align="center">
 
-### 💰 KenFinance
+### KenFinance
 
 **Organiza hoy. Entiende mañana. Decide mejor.**
-
-Versión **1.0.0**
 
 </div>
