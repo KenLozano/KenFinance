@@ -1,15 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+
+import {
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
 
 @Component({
   selector: 'app-mobile-tabs',
   templateUrl: './mobile-tabs.component.html',
   styleUrls: ['./mobile-tabs.component.scss'],
-  imports: [],
+  standalone: true,
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+  ],
 })
-export class MobileTabsComponent  implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {}
-
-}
+export class MobileTabsComponent {}

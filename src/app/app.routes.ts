@@ -8,7 +8,9 @@ export const routes: Routes = [
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () =>
-      import('./features/auth/login/login.component').then(
+      import(
+        './features/auth/login/login.component'
+      ).then(
         (m) => m.LoginComponent,
       ),
   },
@@ -16,7 +18,9 @@ export const routes: Routes = [
     path: 'register',
     canActivate: [guestGuard],
     loadComponent: () =>
-      import('./features/auth/register/register.component').then(
+      import(
+        './features/auth/register/register.component'
+      ).then(
         (m) => m.RegisterComponent,
       ),
   },
@@ -24,46 +28,79 @@ export const routes: Routes = [
     path: 'recovery',
     canActivate: [guestGuard],
     loadComponent: () =>
-      import('./features/auth/recovery/recovery.component').then(
+      import(
+        './features/auth/recovery/recovery.component'
+      ).then(
         (m) => m.RecoveryComponent,
       ),
   },
-  {
-    path: 'home',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/home/home.page').then(
-        (m) => m.HomePage,
-      ),
-  },
-    {
-  path: 'portfolio',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import('./features/portfolio/portfolio.component').then(
-      (m) => m.PortfolioComponent,
-    ),
-},
 
-{
-  path: 'history',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import(
-      './features/history/history.component'
-    ).then(
-      (m) => m.HistoryComponent,
-    ),
-},
   {
     path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './layout/app-shell/app-shell.component'
+      ).then(
+        (m) => m.AppShellComponent,
+      ),
+
+    children: [
+      {
+        path: 'home',
+        loadComponent: () =>
+          import(
+            './features/home/home.page'
+          ).then(
+            (m) => m.HomePage,
+          ),
+      },
+      {
+        path: 'history',
+        loadComponent: () =>
+          import(
+            './features/history/history.component'
+          ).then(
+            (m) => m.HistoryComponent,
+          ),
+      },
+      {
+        path: 'portfolio',
+        loadComponent: () =>
+          import(
+            './features/portfolio/portfolio.component'
+          ).then(
+            (m) => m.PortfolioComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import(
+            './features/settings/settings.component'
+          ).then(
+            (m) => m.SettingsComponent,
+          ),
+      },
+      {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full',
+      },
+      {
+  path: 'transactions/income',
+  loadComponent: () =>
+    import(
+      './features/transactions/income-form/income-form.component'
+    ).then(
+      (m) => m.IncomeFormComponent,
+    ),
+},
+    ],
   },
-  
+
   {
     path: '**',
     redirectTo: 'home',
   },
-
 ];

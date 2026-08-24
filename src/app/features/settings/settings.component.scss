@@ -1,0 +1,59 @@
+.settings-page {
+  width: 100%;
+  max-width: 900px;
+
+  margin: 0 auto;
+  padding: 32px;
+
+  h1 {
+    margin: 4px 0 8px;
+  }
+
+  > p {
+    margin-top: 0;
+
+    opacity: 0.6;
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  opacity: 0.55;
+}
+
+.settings-preview {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(180px, 1fr)
+    );
+
+  gap: 14px;
+
+  margin-top: 28px;
+
+  article {
+    padding: 20px;
+
+    border:
+      1px solid
+      rgba(127, 127, 127, 0.15);
+
+    border-radius: 16px;
+
+    background:
+      rgba(127, 127, 127, 0.04);
+  }
+}
+
+@media (max-width: 900px) {
+  .settings-page {
+    padding: 20px 16px;
+  }
+}

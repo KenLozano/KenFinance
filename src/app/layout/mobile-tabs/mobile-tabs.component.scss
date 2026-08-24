@@ -1,0 +1,109 @@
+.mobile-tabs {
+  position: fixed;
+
+  inset:
+    auto 0 0 0;
+
+  z-index: 200;
+
+  display: none;
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
+  align-items: end;
+
+  min-height: 68px;
+
+  padding:
+    7px 8px
+    calc(
+      7px +
+      env(safe-area-inset-bottom)
+    );
+
+  border-top:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  background:
+    var(--ion-background-color);
+
+  a {
+    display: grid;
+
+    justify-items: center;
+
+    gap: 3px;
+
+    padding: 7px 4px;
+
+    color: inherit;
+
+    text-decoration: none;
+
+    font-size: 0.68rem;
+
+    opacity: 0.58;
+  }
+
+  a.active {
+    color:
+      var(--ion-color-primary);
+
+    opacity: 1;
+
+    font-weight: 700;
+  }
+}
+
+.tab-icon {
+  display: grid;
+
+  height: 22px;
+
+  place-items: center;
+
+  font-size: 1.15rem;
+}
+
+.primary-action {
+  align-self: center;
+  justify-self: center;
+
+  display: grid;
+
+  width: 54px;
+  height: 54px;
+
+  margin-top: -24px;
+
+  place-items: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background:
+    var(--ion-color-primary);
+
+  color:
+    var(--ion-color-primary-contrast);
+
+  font-size: 2rem;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0, 0, 0, 0.22);
+
+  opacity: 1;
+}
+
+.primary-action:disabled {
+  opacity: 0.75;
+}
+
+@media (max-width: 900px) {
+  .mobile-tabs {
+    display: grid;
+  }
+}

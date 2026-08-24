@@ -1,3 +1,47 @@
-<p>
-  mobile-tabs works!
-</p>
+<nav
+  class="mobile-tabs"
+  aria-label="Navegación principal"
+>
+
+  <a
+    routerLink="/home"
+    routerLinkActive="active"
+  >
+    <span class="tab-icon">⌂</span>
+    <span>Inicio</span>
+  </a>
+
+  <a
+    routerLink="/history"
+    routerLinkActive="active"
+  >
+    <span class="tab-icon">≡</span>
+    <span>Historial</span>
+  </a>
+
+  <button
+    type="button"
+    class="primary-action"
+    disabled
+    title="Registro rápido próximamente"
+  >
+    <span>+</span>
+  </button>
+
+  <a
+    routerLink="/portfolio"
+    routerLinkActive="active"
+  >
+    <span class="tab-icon">▣</span>
+    <span>Portafolio</span>
+  </a>
+
+  <a
+    routerLink="/settings"
+    routerLinkActive="active"
+  >
+    <span class="tab-icon">•••</span>
+    <span>Más</span>
+  </a>
+
+</nav>
