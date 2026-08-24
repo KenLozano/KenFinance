@@ -1,0 +1,76 @@
+.distribution-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+
+  header {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 4px 0 0;
+      font-size: 1.15rem;
+    }
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+
+.distribution-item + .distribution-item {
+  margin-top: 18px;
+}
+
+.distribution-label {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 7px;
+
+  span {
+    text-transform: capitalize;
+  }
+}
+
+.track {
+  height: 8px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(127, 127, 127, 0.12);
+}
+
+.bar {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--ion-color-primary);
+}
+
+small {
+  display: block;
+
+  margin-top: 6px;
+
+  opacity: 0.55;
+}
+
+.empty-message {
+  opacity: 0.55;
+}

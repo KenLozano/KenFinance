@@ -301,3 +301,118 @@ label {
     }
   }
 }
+
+.history-tabs {
+  display: flex;
+  gap: 8px;
+
+  button {
+    padding: 10px 16px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+  }
+
+  button.active {
+    background:
+      rgba(127, 127, 127, 0.12);
+
+    font-weight: 700;
+  }
+}
+
+.analysis-section {
+  display: grid;
+  gap: 18px;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  h2 {
+    margin: 4px 0 0;
+  }
+}
+
+.currency-selector {
+  width: 150px;
+}
+
+.analysis-kpis {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 12px;
+
+  article {
+    padding: 16px;
+
+    border:
+      1px solid
+      rgba(127, 127, 127, 0.15);
+
+    border-radius: 14px;
+
+    span,
+    strong {
+      display: block;
+    }
+
+    span {
+      margin-bottom: 7px;
+
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+  }
+}
+
+.analysis-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+.positive {
+  color: var(--ion-color-success);
+}
+
+.negative {
+  color: var(--ion-color-danger);
+}
+
+@media (max-width: 800px) {
+  .analysis-kpis {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .analysis-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .currency-selector {
+    width: 100%;
+  }
+}

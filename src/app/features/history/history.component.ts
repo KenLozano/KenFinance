@@ -28,6 +28,25 @@ import {
   CurrencyCode,
 } from '../../shared/models';
 
+import {
+  MonthlyFlowComponent,
+  MonthlyFlowPoint,
+} from '../../shared/components/monthly-flow/monthly-flow.component';
+
+import {
+  IncomeExpenseChartComponent,
+} from '../../shared/components/income-expense-chart/income-expense-chart.component';
+
+import {
+  ExpenseDistributionComponent,
+  ExpenseDistributionItem,
+} from '../../shared/components/expense-distribution/expense-distribution.component';
+
+import {
+  fromMinorUnits,
+  toMinorUnits,
+} from '../../shared/utils/money';
+
 type PeriodFilter =
   | 'today'
   | 'week'
@@ -51,6 +70,9 @@ type SortOption =
     IonToolbar,
     IonTitle,
     IonContent,
+    MonthlyFlowComponent,
+    IncomeExpenseChartComponent,
+    ExpenseDistributionComponent,
   ],
 })
 export class HistoryComponent implements OnInit {
@@ -230,6 +252,284 @@ export class HistoryComponent implements OnInit {
       ).length,
   );
 
+  readonly activeTab =
+  signal<'movements' | 'analysis'>(
+    'movements',
+  );
+  readonly analysisTransactions =
+  computed(() =>
+    this.filteredTransactions().filter(
+      (transaction) =>
+        this.getTransactionCurrency(
+          transaction,
+        ) ===
+        this.analysisCurrency(),
+    ),
+  );
+  readonly analysisSummary = computed(() => {
+  let incomeMinor = 0;
+  let expensesMinor = 0;
+
+  for (
+    const transaction
+    of this.analysisTransactions()
+  ) {
+    if (
+      transaction.type === 'income' &&
+      transaction.isInitialBalance
+    ) {
+      continue;
+    }
+
+    const amountMinor =
+      toMinorUnits(
+        transaction.amount,
+      );
+
+    if (
+      transaction.type === 'income'
+    ) {
+      incomeMinor += amountMinor;
+    } else {
+      expensesMinor += amountMinor;
+    }
+  }
+
+  const balanceMinor =
+    incomeMinor - expensesMinor;
+
+  const income =
+    fromMinorUnits(incomeMinor);
+
+  const expenses =
+    fromMinorUnits(expensesMinor);
+
+  const balance =
+    fromMinorUnits(balanceMinor);
+
+  const savingsRate =
+    incomeMinor > 0
+      ? (
+          balanceMinor /
+          incomeMinor
+        ) * 100
+      : null;
+
+  return {
+    income,
+    expenses,
+    balance,
+    savingsRate,
+  };
+});
+readonly expenseDistribution =
+  computed<ExpenseDistributionItem[]>(
+    () => {
+      const categories =
+        new Map<string, number>();
+
+      for (
+        const transaction
+        of this.analysisTransactions()
+      ) {
+        if (
+          transaction.type !== 'expense'
+        ) {
+          continue;
+        }
+
+        const category =
+          transaction.category ||
+          'Sin categoría';
+
+        const current =
+          categories.get(category) ?? 0;
+
+        categories.set(
+          category,
+          current +
+            toMinorUnits(
+              transaction.amount,
+            ),
+        );
+      }
+
+      return Array.from(
+        categories.entries(),
+      )
+        .map(
+          ([
+            category,
+            amountMinor,
+          ]) => ({
+            category,
+            amount:
+              fromMinorUnits(
+                amountMinor,
+              ),
+          }),
+        )
+        .sort(
+          (a, b) =>
+            b.amount - a.amount,
+        );
+    },
+  );
+
+  readonly analysisFlow =
+  computed<MonthlyFlowPoint[]>(() => {
+    const transactions =
+      this.analysisTransactions();
+
+    if (!transactions.length) {
+      return [];
+    }
+
+    const sorted =
+      [...transactions].sort(
+        (a, b) =>
+          a.date.getTime() -
+          b.date.getTime(),
+      );
+
+    const buckets =
+      new Map<
+        string,
+        {
+          date: Date;
+          income: number;
+          expenses: number;
+        }
+      >();
+
+    for (const transaction of sorted) {
+      if (
+        transaction.type === 'income' &&
+        transaction.isInitialBalance
+      ) {
+        continue;
+      }
+
+      const key =
+        this.toDateKey(
+          transaction.date,
+        );
+
+      const bucket =
+        buckets.get(key) ?? {
+          date: transaction.date,
+          income: 0,
+          expenses: 0,
+        };
+
+      const amount =
+        toMinorUnits(
+          transaction.amount,
+        );
+
+      if (
+        transaction.type === 'income'
+      ) {
+        bucket.income += amount;
+      } else {
+        bucket.expenses += amount;
+      }
+
+      buckets.set(
+        key,
+        bucket,
+      );
+    }
+
+    const ordered =
+      Array.from(
+        buckets.values(),
+      ).sort(
+        (a, b) =>
+          a.date.getTime() -
+          b.date.getTime(),
+      );
+
+    let income = 0;
+    let expenses = 0;
+
+    return ordered.map(
+      (bucket, index) => {
+        income += bucket.income;
+        expenses += bucket.expenses;
+
+        return {
+          day: index + 1,
+          income:
+            fromMinorUnits(
+              income,
+            ),
+          expenses:
+            fromMinorUnits(
+              expenses,
+            ),
+        };
+      },
+    );
+  });
+
+  private toDateKey(
+  date: Date,
+): string {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(2, '0');
+
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+setActiveTab(
+  tab: 'movements' | 'analysis',
+): void {
+  this.activeTab.set(tab);
+}
+
+readonly analysisCurrency =
+  signal<CurrencyCode>('PEN');
+
+updateAnalysisCurrency(
+  currency: CurrencyCode,
+): void {
+  this.analysisCurrency.set(currency);
+}
+
+readonly availableCurrencies = computed<
+  CurrencyCode[]
+>(() => {
+  const currencies =
+    new Set<CurrencyCode>();
+
+  for (const account of this.accounts()) {
+    currencies.add(
+      account.currency,
+    );
+  }
+
+  return [
+    'PEN',
+    'USD',
+    'EUR',
+  ].filter(
+    (currency) =>
+      currencies.has(
+        currency as CurrencyCode,
+      ),
+  ) as CurrencyCode[];
+});
   async ngOnInit(): Promise<void> {
     await this.loadHistory();
   }
@@ -261,6 +561,22 @@ export class HistoryComponent implements OnInit {
 
       this.accounts.set(accounts);
       this.transactions.set(transactions);
+
+      const firstCurrency =
+  accounts[0]?.currency;
+
+if (firstCurrency) {
+  this.analysisCurrency.set(
+    accounts.some(
+      (account) =>
+        account.currency === 'PEN',
+    )
+      ? 'PEN'
+      : firstCurrency,
+  );
+}
+
+
     } catch (error) {
       console.error(
         'History load error:',
@@ -272,6 +588,7 @@ export class HistoryComponent implements OnInit {
       );
     } finally {
       this.isLoading.set(false);
+      
     }
   }
 

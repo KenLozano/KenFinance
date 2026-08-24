@@ -36,6 +36,34 @@
       }
     </header>
 
+    <nav class="history-tabs">
+
+  <button
+    type="button"
+    [class.active]="
+      activeTab() === 'movements'
+    "
+    (click)="
+      setActiveTab('movements')
+    "
+  >
+    Movimientos
+  </button>
+
+  <button
+    type="button"
+    [class.active]="
+      activeTab() === 'analysis'
+    "
+    (click)="
+      setActiveTab('analysis')
+    "
+  >
+    Análisis
+  </button>
+
+</nav>
+
     @if (isLoading()) {
 
       <section class="status-card">
@@ -228,6 +256,7 @@
 
       </section>
 
+      @if (activeTab() === 'movements') {
       <section class="movements-section">
 
         <header class="section-header">
@@ -363,6 +392,173 @@
       </section>
 
     }
+  }
+
+  @if (activeTab() === 'analysis') {
+
+  <section class="analysis-section">
+
+    <header class="analysis-header">
+
+      <div>
+        <span class="eyebrow">
+          ANÁLISIS
+        </span>
+
+        <h2>
+          Comportamiento financiero
+        </h2>
+      </div>
+
+      <label class="currency-selector">
+        Moneda
+
+        <select
+          [ngModel]="analysisCurrency()"
+          (ngModelChange)="
+            updateAnalysisCurrency($event)
+          "
+        >
+
+          @for (
+            currency
+            of availableCurrencies();
+            track currency
+          ) {
+            <option
+              [value]="currency"
+            >
+              {{ currency }}
+            </option>
+          }
+
+        </select>
+      </label>
+
+    </header>
+
+    <div class="analysis-kpis">
+
+      <article>
+        <span>Ingresos</span>
+
+        <strong class="positive">
+          {{
+            getCurrencySymbol(
+              analysisCurrency()
+            )
+          }}
+          {{
+            analysisSummary()
+              .income
+              .toFixed(2)
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <span>Gastos</span>
+
+        <strong class="negative">
+          {{
+            getCurrencySymbol(
+              analysisCurrency()
+            )
+          }}
+          {{
+            analysisSummary()
+              .expenses
+              .toFixed(2)
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <span>Balance</span>
+
+        <strong
+          [class.positive]="
+            analysisSummary().balance >= 0
+          "
+          [class.negative]="
+            analysisSummary().balance < 0
+          "
+        >
+          {{
+            getCurrencySymbol(
+              analysisCurrency()
+            )
+          }}
+          {{
+            analysisSummary()
+              .balance
+              .toFixed(2)
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <span>Tasa de ahorro</span>
+
+        <strong>
+          @if (
+            analysisSummary()
+              .savingsRate !== null
+          ) {
+            {{
+              analysisSummary()
+                .savingsRate
+                ?.toFixed(1)
+            }}%
+          } @else {
+            —
+          }
+        </strong>
+      </article>
+
+    </div>
+
+    <div class="analysis-grid">
+
+      <app-income-expense-chart
+        [income]="
+          analysisSummary().income
+        "
+        [expenses]="
+          analysisSummary().expenses
+        "
+        [currencySymbol]="
+          getCurrencySymbol(
+            analysisCurrency()
+          )
+        "
+      ></app-income-expense-chart>
+
+      <app-expense-distribution
+        [items]="
+          expenseDistribution()
+        "
+        [currencySymbol]="
+          getCurrencySymbol(
+            analysisCurrency()
+          )
+        "
+      ></app-expense-distribution>
+
+    </div>
+
+    <app-monthly-flow
+      [points]="analysisFlow()"
+      [currencySymbol]="
+        getCurrencySymbol(
+          analysisCurrency()
+        )
+      "
+    ></app-monthly-flow>
+
+  </section>
+
+}
 
   </main>
 
