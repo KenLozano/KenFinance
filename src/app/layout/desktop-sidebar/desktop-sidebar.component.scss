@@ -71,6 +71,50 @@
   }
 }
 
+.new-transaction-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  width: 100%;
+
+  margin-bottom: 22px;
+  padding: 11px 14px;
+
+  border: 0;
+  border-radius: 12px;
+
+  background:
+    var(--ion-color-primary);
+
+  color:
+    var(--ion-color-primary-contrast);
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+
+  span {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+}
+
+.new-transaction-button:hover {
+  opacity: 0.9;
+}
+
+.new-transaction-button:active {
+  transform: scale(0.98);
+}
+
 .sidebar-nav {
   display: grid;
 

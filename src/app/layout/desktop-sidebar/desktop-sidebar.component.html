@@ -11,6 +11,17 @@
     </div>
   </header>
 
+  <button
+    type="button"
+    class="new-transaction-button"
+    aria-label="Registrar nuevo movimiento"
+    [attr.aria-expanded]="quickMenuOpen()"
+    (click)="openQuickMenu()"
+  >
+    <span>+</span>
+    Nuevo movimiento
+  </button>
+
   <nav class="sidebar-nav">
 
     <a
@@ -54,3 +65,8 @@
   </footer>
 
 </aside>
+
+<app-transaction-quick-menu
+  [open]="quickMenuOpen()"
+  (closed)="closeQuickMenu()"
+></app-transaction-quick-menu>
