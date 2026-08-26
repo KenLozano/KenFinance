@@ -1,6 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Nuevo ingreso</ion-title>
+    <ion-title>
+  {{ isEditMode() ? 'Editar ingreso' : 'Nuevo ingreso' }}
+</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,11 +15,17 @@
         MOVIMIENTO
       </span>
 
-      <h1>Registrar ingreso</h1>
+      <h1>
+  {{ isEditMode() ? 'Editar ingreso' : 'Registrar ingreso' }}
+</h1>
 
-      <p>
-        Añade dinero recibido a una de tus cuentas.
-      </p>
+<p>
+  @if (isEditMode()) {
+    Modifica los datos del ingreso seleccionado.
+  } @else {
+    Añade dinero recibido a una de tus cuentas.
+  }
+</p>
     </header>
 
     @if (isLoading()) {
@@ -105,7 +113,7 @@
               type="text"
               name="source"
               [(ngModel)]="source"
-              maxlength="50"
+              maxlength="40"
               placeholder="Ej. salario, otros..."
             />
           </label>
@@ -116,7 +124,7 @@
             <textarea
               name="note"
               [(ngModel)]="note"
-              maxlength="250"
+              maxlength="100"
               rows="3"
               placeholder="Descripción opcional"
             ></textarea>
@@ -167,10 +175,12 @@
             "
           >
             @if (isSaving()) {
-              Guardando...
-            } @else {
-              Registrar ingreso
-            }
+  Guardando...
+} @else if (isEditMode()) {
+  Guardar cambios
+} @else {
+  Registrar ingreso
+}
           </ion-button>
 
         </div>

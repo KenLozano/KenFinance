@@ -339,6 +339,74 @@
                     </small>
                   }
 
+                  @if (
+  !(
+    transaction.type === 'income' &&
+    transaction.isInitialBalance
+  )
+) {
+
+  <div class="movement-actions">
+
+    <button
+      type="button"
+      (click)="editTransaction(transaction)"
+    >
+      Editar
+    </button>
+
+    <button
+      type="button"
+      [disabled]="
+        deletingTransactionId() ===
+        transaction.id
+      "
+      (click)="
+        confirmDeleteTransaction(
+          transaction
+        )
+      "
+    >
+      @if (
+        deletingTransactionId() ===
+        transaction.id
+      ) {
+        Eliminando...
+      } @else {
+        Eliminar
+      }
+    </button>
+
+  </div>
+
+}
+
+                  <div class="movement-actions">
+
+  <button
+    type="button"
+    [disabled]="
+      deletingTransactionId() ===
+      transaction.id
+    "
+    (click)="
+      confirmDeleteTransaction(
+        transaction
+      )
+    "
+  >
+    @if (
+      deletingTransactionId() ===
+      transaction.id
+    ) {
+      Eliminando...
+    } @else {
+      Eliminar
+    }
+  </button>
+
+</div>
+
                 </div>
 
                 <strong

@@ -109,6 +109,24 @@ export const routes: Routes = [
   },
 
   {
+  path: 'transactions/income/:id',
+  loadComponent: () =>
+    import(
+      './features/transactions/income-form/income-form.component'
+    ).then(
+      (m) => m.IncomeFormComponent,
+    ),
+},
+{
+  path: 'transactions/expense/:id',
+  loadComponent: () =>
+    import(
+      './features/transactions/expense-form/expense-form.component'
+    ).then(
+      (m) => m.ExpenseFormComponent,
+    ),
+},
+  {
     path: '**',
     redirectTo: 'home',
   },

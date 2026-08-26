@@ -1,6 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Nuevo gasto</ion-title>
+    <ion-title>
+  {{ isEditMode() ? 'Editar gasto' : 'Nuevo gasto' }}
+</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,11 +15,17 @@
         MOVIMIENTO
       </span>
 
-      <h1>Registrar gasto</h1>
+      <h1>
+  {{ isEditMode() ? 'Editar gasto' : 'Registrar gasto' }}
+</h1>
 
-      <p>
-        Registra una salida de dinero desde una de tus cuentas.
-      </p>
+<p>
+  @if (isEditMode()) {
+    Modifica los datos del gasto seleccionado.
+  } @else {
+    Registra una salida de dinero desde una de tus cuentas.
+  }
+</p>
     </header>
 
     @if (isLoading()) {
@@ -190,7 +198,7 @@
             <textarea
               name="note"
               [(ngModel)]="note"
-              maxlength="250"
+              maxlength="100"
               rows="3"
               placeholder="Descripción opcional"
             ></textarea>
@@ -223,10 +231,12 @@
             "
           >
             @if (isSaving()) {
-              Guardando...
-            } @else {
-              Registrar gasto
-            }
+  Guardando...
+} @else if (isEditMode()) {
+  Guardar cambios
+} @else {
+  Registrar gasto
+}
           </ion-button>
 
         </div>

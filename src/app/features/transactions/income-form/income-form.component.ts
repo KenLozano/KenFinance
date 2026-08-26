@@ -1,12 +1,16 @@
 import {
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+} from '@angular/router';
 
 import {
   IonButton,
@@ -18,11 +22,14 @@ import {
 
 import { AuthService } from '../../../core/auth/auth';
 import { AccountService } from '../../../core/services/account';
-import { TransactionService } from '../../../core/services/transaction';
+import {
+  TransactionService,
+} from '../../../core/services/transaction';
 
 import {
   Account,
   CurrencyCode,
+  Income,
 } from '../../../shared/models';
 
 @Component({
@@ -44,28 +51,50 @@ export class IncomeFormComponent implements OnInit {
   private readonly accountService = inject(AccountService);
   private readonly transactionService =
     inject(TransactionService);
+
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly accounts = signal<Account[]>([]);
+
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
 
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
 
+  readonly transactionId =
+    signal<string | null>(null);
+
+  readonly isEditMode = computed(
+    () => this.transactionId() !== null,
+  );
+
   amount: number | null = null;
+
   date = this.getTodayInputValue();
+
   assetId = '';
 
   source = 'otros';
   note = '';
   tags = '';
 
+  private isInitialBalance = false;
+  private legacyAccount: string | undefined;
+
   async ngOnInit(): Promise<void> {
-    await this.loadAccounts();
+    const transactionId =
+      this.route.snapshot.paramMap.get('id');
+
+    this.transactionId.set(transactionId);
+
+    await this.loadFormData(transactionId);
   }
 
-  private async loadAccounts(): Promise<void> {
+  private async loadFormData(
+    transactionId: string | null,
+  ): Promise<void> {
     const user = this.authService.currentUser;
 
     if (!user) {
@@ -77,41 +106,105 @@ export class IncomeFormComponent implements OnInit {
       return;
     }
 
+    const uid = user.uid;
+
     try {
       const accounts =
-        await this.accountService.getAccounts(
-          user.uid,
-        );
+        await this.accountService.getAccounts(uid);
 
       this.accounts.set(accounts);
 
-      if (accounts.length === 1) {
-        this.assetId = accounts[0].id;
+      if (!transactionId) {
+        if (accounts.length === 1) {
+          this.assetId = accounts[0].id;
+        }
+
+        return;
       }
+
+      const transaction =
+        await this.transactionService
+          .getTransactionById(
+            uid,
+            'income',
+            transactionId,
+          );
+
+      if (
+        !transaction ||
+        transaction.type !== 'income'
+      ) {
+        this.errorMessage.set(
+          'No se encontró el ingreso solicitado.',
+        );
+
+        return;
+      }
+
+      if (transaction.isInitialBalance) {
+        this.errorMessage.set(
+          'El saldo inicial no puede editarse desde el historial.',
+        );
+
+        return;
+      }
+
+      this.populateForm(transaction);
     } catch (error) {
       console.error(
-        'Income accounts load error:',
+        'Income form load error:',
         error,
       );
 
       this.errorMessage.set(
-        'No se pudieron cargar las cuentas.',
+        'No se pudo cargar el ingreso.',
       );
     } finally {
       this.isLoading.set(false);
     }
   }
 
+  private populateForm(
+    transaction: Income,
+  ): void {
+    this.amount = transaction.amount;
+
+    this.date =
+      this.formatDateForInput(
+        transaction.date,
+      );
+
+    this.assetId =
+      transaction.assetId;
+
+    this.source =
+      transaction.source || 'otros';
+
+    this.note =
+      transaction.note || '';
+
+    this.tags =
+      transaction.tags || '';
+
+    this.isInitialBalance =
+      transaction.isInitialBalance === true;
+
+    this.legacyAccount =
+      transaction.account;
+  }
+
   async submit(): Promise<void> {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    const user = this.authService.currentUser;
+    const user =
+      this.authService.currentUser;
 
     if (!user) {
       this.errorMessage.set(
         'No se encontró una sesión activa.',
       );
+
       return;
     }
 
@@ -127,6 +220,7 @@ export class IncomeFormComponent implements OnInit {
       this.errorMessage.set(
         'Ingresa un monto válido mayor a cero.',
       );
+
       return;
     }
 
@@ -134,6 +228,7 @@ export class IncomeFormComponent implements OnInit {
       this.errorMessage.set(
         'Selecciona la cuenta que recibirá el ingreso.',
       );
+
       return;
     }
 
@@ -144,27 +239,44 @@ export class IncomeFormComponent implements OnInit {
       this.errorMessage.set(
         'Selecciona una fecha válida.',
       );
+
       return;
     }
+
+    const transactionId =
+      this.transactionId();
 
     this.isSaving.set(true);
 
     try {
-      await this.transactionService.createIncome(
-        user.uid,
-        {
-          amount: this.amount,
-          date: transactionDate,
-          assetId: this.assetId,
-          note: this.note,
-          source: this.source.trim() || 'otros',
-          tags: this.tags,
-        },
-      );
+      const input = {
+        amount: this.amount,
+        date: transactionDate,
+        assetId: this.assetId,
+        note: this.note,
+        source:
+          this.source.trim() || 'otros',
+        tags: this.tags,
+        isInitialBalance:
+          this.isInitialBalance,
+        account:
+          this.legacyAccount,
+      };
 
-      this.successMessage.set(
-        'Ingreso registrado correctamente.',
-      );
+      if (transactionId) {
+        await this.transactionService
+          .updateIncome(
+            user.uid,
+            transactionId,
+            input,
+          );
+      } else {
+        await this.transactionService
+          .createIncome(
+            user.uid,
+            input,
+          );
+      }
 
       await this.router.navigateByUrl(
         '/history',
@@ -174,12 +286,16 @@ export class IncomeFormComponent implements OnInit {
       );
     } catch (error) {
       console.error(
-        'Income creation error:',
+        this.isEditMode()
+          ? 'Income update error:'
+          : 'Income creation error:',
         error,
       );
 
       this.errorMessage.set(
-        'No se pudo registrar el ingreso.',
+        this.isEditMode()
+          ? 'No se pudo actualizar el ingreso.'
+          : 'No se pudo registrar el ingreso.',
       );
     } finally {
       this.isSaving.set(false);
@@ -187,7 +303,11 @@ export class IncomeFormComponent implements OnInit {
   }
 
   cancel(): void {
-    void this.router.navigateByUrl('/home');
+    void this.router.navigateByUrl(
+      this.isEditMode()
+        ? '/history'
+        : '/home',
+    );
   }
 
   getSelectedCurrency(): CurrencyCode {
@@ -216,17 +336,26 @@ export class IncomeFormComponent implements OnInit {
   }
 
   private getTodayInputValue(): string {
-    const today = new Date();
+    return this.formatDateForInput(
+      new Date(),
+    );
+  }
 
-    const year = today.getFullYear();
+  private formatDateForInput(
+    date: Date,
+  ): string {
+    const year =
+      date.getFullYear();
 
-    const month = String(
-      today.getMonth() + 1,
-    ).padStart(2, '0');
+    const month =
+      String(
+        date.getMonth() + 1,
+      ).padStart(2, '0');
 
-    const day = String(
-      today.getDate(),
-    ).padStart(2, '0');
+    const day =
+      String(
+        date.getDate(),
+      ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }

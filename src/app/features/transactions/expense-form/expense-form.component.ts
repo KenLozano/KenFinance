@@ -1,12 +1,17 @@
 import {
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+
+import {
+  ActivatedRoute,
+  Router,
+} from '@angular/router';
 
 import {
   IonButton,
@@ -18,11 +23,15 @@ import {
 
 import { AuthService } from '../../../core/auth/auth';
 import { AccountService } from '../../../core/services/account';
-import { TransactionService } from '../../../core/services/transaction';
+
+import {
+  TransactionService,
+} from '../../../core/services/transaction';
 
 import {
   Account,
   CurrencyCode,
+  Expense,
 } from '../../../shared/models';
 
 @Component({
@@ -40,19 +49,45 @@ import {
   ],
 })
 export class ExpenseFormComponent implements OnInit {
-  private readonly authService = inject(AuthService);
-  private readonly accountService = inject(AccountService);
+  private readonly authService =
+    inject(AuthService);
+
+  private readonly accountService =
+    inject(AccountService);
+
   private readonly transactionService =
     inject(TransactionService);
-  private readonly router = inject(Router);
 
-  readonly accounts = signal<Account[]>([]);
-  readonly isLoading = signal(true);
-  readonly isSaving = signal(false);
-  readonly errorMessage = signal('');
+  private readonly router =
+    inject(Router);
+
+  private readonly route =
+    inject(ActivatedRoute);
+
+  readonly accounts =
+    signal<Account[]>([]);
+
+  readonly isLoading =
+    signal(true);
+
+  readonly isSaving =
+    signal(false);
+
+  readonly errorMessage =
+    signal('');
+
+  readonly transactionId =
+    signal<string | null>(null);
+
+  readonly isEditMode = computed(
+    () => this.transactionId() !== null,
+  );
 
   amount: number | null = null;
-  date = this.getTodayInputValue();
+
+  date =
+    this.getTodayInputValue();
+
   assetId = '';
 
   category = '';
@@ -62,11 +97,23 @@ export class ExpenseFormComponent implements OnInit {
   note = '';
 
   async ngOnInit(): Promise<void> {
-    await this.loadAccounts();
+    const transactionId =
+      this.route.snapshot.paramMap.get('id');
+
+    this.transactionId.set(
+      transactionId,
+    );
+
+    await this.loadFormData(
+      transactionId,
+    );
   }
 
-  private async loadAccounts(): Promise<void> {
-    const user = this.authService.currentUser;
+  private async loadFormData(
+    transactionId: string | null,
+  ): Promise<void> {
+    const user =
+      this.authService.currentUser;
 
     if (!user) {
       this.errorMessage.set(
@@ -77,40 +124,101 @@ export class ExpenseFormComponent implements OnInit {
       return;
     }
 
+    const uid = user.uid;
+
     try {
       const accounts =
-        await this.accountService.getAccounts(
-          user.uid,
-        );
+        await this.accountService
+          .getAccounts(uid);
 
       this.accounts.set(accounts);
 
-      if (accounts.length === 1) {
-        this.assetId = accounts[0].id;
+      if (!transactionId) {
+        if (accounts.length === 1) {
+          this.assetId =
+            accounts[0].id;
+        }
+
+        return;
       }
+
+      const transaction =
+        await this.transactionService
+          .getTransactionById(
+            uid,
+            'expense',
+            transactionId,
+          );
+
+      if (
+        !transaction ||
+        transaction.type !== 'expense'
+      ) {
+        this.errorMessage.set(
+          'No se encontró el gasto solicitado.',
+        );
+
+        return;
+      }
+
+      this.populateForm(
+        transaction,
+      );
     } catch (error) {
       console.error(
-        'Expense accounts load error:',
+        'Expense form load error:',
         error,
       );
 
       this.errorMessage.set(
-        'No se pudieron cargar las cuentas.',
+        'No se pudo cargar el gasto.',
       );
     } finally {
       this.isLoading.set(false);
     }
   }
 
+  private populateForm(
+    transaction: Expense,
+  ): void {
+    this.amount =
+      transaction.amount;
+
+    this.date =
+      this.formatDateForInput(
+        transaction.date,
+      );
+
+    this.assetId =
+      transaction.assetId;
+
+    this.category =
+      transaction.category || '';
+
+    this.merchant =
+      transaction.merchant || '';
+
+    this.method =
+      transaction.method || 'efectivo';
+
+    this.priority =
+      transaction.priority || 'media';
+
+    this.note =
+      transaction.note || '';
+  }
+
   async submit(): Promise<void> {
     this.errorMessage.set('');
 
-    const user = this.authService.currentUser;
+    const user =
+      this.authService.currentUser;
 
     if (!user) {
       this.errorMessage.set(
         'No se encontró una sesión activa.',
       );
+
       return;
     }
 
@@ -126,6 +234,7 @@ export class ExpenseFormComponent implements OnInit {
       this.errorMessage.set(
         'Ingresa un monto válido mayor a cero.',
       );
+
       return;
     }
 
@@ -133,6 +242,7 @@ export class ExpenseFormComponent implements OnInit {
       this.errorMessage.set(
         'Selecciona la cuenta desde la que salió el dinero.',
       );
+
       return;
     }
 
@@ -140,35 +250,55 @@ export class ExpenseFormComponent implements OnInit {
       this.errorMessage.set(
         'Selecciona una categoría.',
       );
+
       return;
     }
 
     const transactionDate =
-      this.parseLocalDate(this.date);
+      this.parseLocalDate(
+        this.date,
+      );
 
     if (!transactionDate) {
       this.errorMessage.set(
         'Selecciona una fecha válida.',
       );
+
       return;
     }
+
+    const transactionId =
+      this.transactionId();
 
     this.isSaving.set(true);
 
     try {
-      await this.transactionService.createExpense(
-        user.uid,
-        {
-          amount: this.amount,
-          date: transactionDate,
-          assetId: this.assetId,
-          category: this.category.trim(),
-          merchant: this.merchant,
-          method: this.method,
-          priority: this.priority,
-          note: this.note,
-        },
-      );
+      const input = {
+        amount: this.amount,
+        date: transactionDate,
+        assetId: this.assetId,
+        category:
+          this.category.trim(),
+        merchant: this.merchant,
+        method: this.method,
+        priority: this.priority,
+        note: this.note,
+      };
+
+      if (transactionId) {
+        await this.transactionService
+          .updateExpense(
+            user.uid,
+            transactionId,
+            input,
+          );
+      } else {
+        await this.transactionService
+          .createExpense(
+            user.uid,
+            input,
+          );
+      }
 
       await this.router.navigateByUrl(
         '/history',
@@ -178,12 +308,16 @@ export class ExpenseFormComponent implements OnInit {
       );
     } catch (error) {
       console.error(
-        'Expense creation error:',
+        this.isEditMode()
+          ? 'Expense update error:'
+          : 'Expense creation error:',
         error,
       );
 
       this.errorMessage.set(
-        'No se pudo registrar el gasto.',
+        this.isEditMode()
+          ? 'No se pudo actualizar el gasto.'
+          : 'No se pudo registrar el gasto.',
       );
     } finally {
       this.isSaving.set(false);
@@ -191,7 +325,11 @@ export class ExpenseFormComponent implements OnInit {
   }
 
   cancel(): void {
-    void this.router.navigateByUrl('/home');
+    void this.router.navigateByUrl(
+      this.isEditMode()
+        ? '/history'
+        : '/home',
+    );
   }
 
   getSelectedCurrency(): CurrencyCode {
@@ -220,17 +358,26 @@ export class ExpenseFormComponent implements OnInit {
   }
 
   private getTodayInputValue(): string {
-    const today = new Date();
+    return this.formatDateForInput(
+      new Date(),
+    );
+  }
 
-    const year = today.getFullYear();
+  private formatDateForInput(
+    date: Date,
+  ): string {
+    const year =
+      date.getFullYear();
 
-    const month = String(
-      today.getMonth() + 1,
-    ).padStart(2, '0');
+    const month =
+      String(
+        date.getMonth() + 1,
+      ).padStart(2, '0');
 
-    const day = String(
-      today.getDate(),
-    ).padStart(2, '0');
+    const day =
+      String(
+        date.getDate(),
+      ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }
@@ -246,7 +393,11 @@ export class ExpenseFormComponent implements OnInit {
       .split('-')
       .map(Number);
 
-    if (!year || !month || !day) {
+    if (
+      !year ||
+      !month ||
+      !day
+    ) {
       return null;
     }
 

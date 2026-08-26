@@ -47,6 +47,8 @@ import {
   toMinorUnits,
 } from '../../shared/utils/money';
 
+import { Router } from '@angular/router';
+
 type PeriodFilter =
   | 'today'
   | 'week'
@@ -80,12 +82,15 @@ export class HistoryComponent implements OnInit {
   private readonly accountService = inject(AccountService);
   private readonly transactionService =
     inject(TransactionService);
+  private readonly router = inject(Router);
 
   readonly accounts = signal<Account[]>([]);
   readonly transactions = signal<Transaction[]>([]);
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
+
+  readonly deletingTransactionId = signal<string | null>(null);
 
   readonly searchTerm = signal('');
   readonly period = signal<PeriodFilter>('month');
@@ -706,6 +711,163 @@ if (firstCurrency) {
       },
     ).format(date);
   }
+
+ 
+
+private async deleteTransaction(
+  transaction: Transaction,
+): Promise<void> {
+  const user =
+    this.authService.currentUser;
+
+  if (!user) {
+    this.errorMessage.set(
+      'No se encontró una sesión activa.',
+    );
+
+    return;
+  }
+
+  if (
+    this.deletingTransactionId() !== null
+  ) {
+    return;
+  }
+
+  const uid = user.uid;
+
+  this.deletingTransactionId.set(
+    transaction.id,
+  );
+
+  this.errorMessage.set('');
+
+  try {
+    await this.transactionService
+      .deleteTransaction(
+        uid,
+        transaction.type,
+        transaction.id,
+      );
+
+    this.transactions.update(
+      (transactions) =>
+        transactions.filter(
+          (item) =>
+            !(
+              item.id === transaction.id &&
+              item.type === transaction.type
+            ),
+        ),
+    );
+
+    
+  } catch (error) {
+    console.error(
+      'Transaction deletion error:',
+      error,
+    );
+
+    this.errorMessage.set(
+      'No se pudo eliminar el movimiento.',
+    );
+  } finally {
+    this.deletingTransactionId.set(null);
+  }
+}
+
+editTransaction(
+  transaction: Transaction,
+): void {
+  if (
+    transaction.type === 'income' &&
+    transaction.isInitialBalance
+  ) {
+    return;
+  }
+
+  const route =
+    transaction.type === 'income'
+      ? `/transactions/income/${transaction.id}`
+      : `/transactions/expense/${transaction.id}`;
+
+  void this.router.navigateByUrl(route);
+}
+
+async confirmDeleteTransaction(
+  transaction: Transaction,
+): Promise<void> {
+  if (
+    transaction.type === 'income' &&
+    transaction.isInitialBalance
+  ) {
+    return;
+  }
+
+  if (
+    this.deletingTransactionId() !== null
+  ) {
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      '¿Seguro que deseas eliminar este movimiento?\n\n' +
+      'Esta acción modificará el saldo de la cuenta.',
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const user =
+    this.authService.currentUser;
+
+  if (!user) {
+    this.errorMessage.set(
+      'No se encontró una sesión activa.',
+    );
+
+    return;
+  }
+
+  this.deletingTransactionId.set(
+    transaction.id,
+  );
+
+  try {
+    await this.transactionService
+      .deleteTransaction(
+        user.uid,
+        transaction.type,
+        transaction.id,
+      );
+
+    this.transactions.update(
+      (transactions) =>
+        transactions.filter(
+          (item) =>
+            !(
+              item.id === transaction.id &&
+              item.type === transaction.type
+            ),
+        ),
+    );
+  } catch (error) {
+    console.error(
+      'Transaction deletion error:',
+      error,
+    );
+
+    this.errorMessage.set(
+      'No se pudo eliminar el movimiento.',
+    );
+  } finally {
+    this.deletingTransactionId.set(null);
+  }
+}
+
+
 
   private matchesPeriod(
     transaction: Transaction,
