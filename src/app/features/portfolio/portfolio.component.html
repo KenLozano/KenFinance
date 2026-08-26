@@ -54,15 +54,171 @@
 
     <section class="accounts-section">
       <header>
-        <div>
-          <h2>Cuentas</h2>
-          <p>
-            {{ accounts().length }}
-            cuenta(s) activa(s)
-          </p>
-        </div>
-      </header>
+  <div>
+    <h2>Cuentas</h2>
 
+    <p>
+      {{ accounts().length }}
+      cuenta(s) activa(s)
+    </p>
+  </div>
+
+  <button
+    type="button"
+    (click)="openCreateAccount()"
+  >
+    + Nueva cuenta
+  </button>
+</header>
+
+      @if (accountFormOpen()) {
+
+  <section class="account-form-card">
+
+    <header>
+      <div>
+        <span>
+          CUENTA
+        </span>
+
+        <h3>
+          Nueva cuenta
+        </h3>
+      </div>
+    </header>
+
+    <form
+      (ngSubmit)="createAccount()"
+    >
+
+      <label>
+        Nombre
+
+        <input
+          type="text"
+          name="accountName"
+          [(ngModel)]="accountName"
+          maxlength="60"
+          placeholder="Ej. Yape, BCP, Efectivo..."
+          required
+        />
+      </label>
+
+      <label>
+        Tipo de cuenta
+
+        <select
+          name="accountType"
+          [(ngModel)]="accountType"
+          required
+        >
+          <option value="bank_account">
+            Cuenta bancaria
+          </option>
+
+          <option value="wallet">
+            Billetera digital
+          </option>
+
+          <option value="cash">
+            Efectivo
+          </option>
+
+          <option value="credit_card">
+            Tarjeta de crédito
+          </option>
+
+          <option value="crypto">
+            Criptomonedas
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Moneda
+
+        <select
+          name="accountCurrency"
+          [(ngModel)]="accountCurrency"
+          required
+        >
+          <option value="PEN">
+            PEN · Sol peruano
+          </option>
+
+          <option value="USD">
+            USD · Dólar
+          </option>
+
+          <option value="EUR">
+            EUR · Euro
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Saldo inicial
+
+        <div class="money-input">
+          <span>
+            {{
+              getCurrencySymbol(
+                accountCurrency
+              )
+            }}
+          </span>
+
+          <input
+            type="number"
+            name="initialBalance"
+            [(ngModel)]="initialBalance"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            placeholder="0.00"
+          />
+        </div>
+      </label>
+
+      <small>
+        Si la cuenta empieza en cero,
+        puedes dejar el saldo inicial vacío.
+      </small>
+
+      @if (accountFormError()) {
+        <p class="message error">
+          {{ accountFormError() }}
+        </p>
+      }
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          [disabled]="isSavingAccount()"
+          (click)="closeAccountForm()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="isSavingAccount()"
+        >
+          @if (isSavingAccount()) {
+            Creando...
+          } @else {
+            Crear cuenta
+          }
+        </button>
+
+      </div>
+
+    </form>
+
+  </section>
+
+}
       @if (!isLoading() && !errorMessage()) {
 
         @if (accounts().length > 0) {

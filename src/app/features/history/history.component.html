@@ -381,32 +381,7 @@
 
 }
 
-                  <div class="movement-actions">
-
-  <button
-    type="button"
-    [disabled]="
-      deletingTransactionId() ===
-      transaction.id
-    "
-    (click)="
-      confirmDeleteTransaction(
-        transaction
-      )
-    "
-  >
-    @if (
-      deletingTransactionId() ===
-      transaction.id
-    ) {
-      Eliminando...
-    } @else {
-      Eliminar
-    }
-  </button>
-
-</div>
-
+                 
                 </div>
 
                 <strong

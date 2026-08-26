@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+   computed,
   inject,
   signal,
 } from '@angular/core';
@@ -19,18 +20,24 @@ import {
   TransactionService,
 } from '../../core/services/transaction';
 
-import { Account } from '../../shared/models';
+import {
+  Account,
+  AccountType,
+  CurrencyCode,
+} from '../../shared/models';
 
 import {
   fromMinorUnits,
 } from '../../shared/utils/money';
 
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-portfolio',
   templateUrl: './portfolio.component.html',
   styleUrls: ['./portfolio.component.scss'],
   standalone: true,
   imports: [
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -50,6 +57,21 @@ export class PortfolioComponent implements OnInit {
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
+
+  readonly accountFormOpen = signal(false);
+readonly isSavingAccount = signal(false);
+
+readonly accountFormError = signal('');
+
+accountName = '';
+
+accountType: AccountType =
+  'bank_account';
+
+accountCurrency: CurrencyCode =
+  'PEN';
+
+initialBalance: number | null = null;
 
   async ngOnInit(): Promise<void> {
     await this.loadPortfolio();
@@ -125,6 +147,135 @@ for (
   getBalance(accountId: string): number {
     return this.balances()[accountId] ?? 0;
   }
+
+  openCreateAccount(): void {
+  this.accountName = '';
+  this.accountType = 'bank_account';
+  this.accountCurrency = 'PEN';
+  this.initialBalance = null;
+
+  this.accountFormError.set('');
+  this.accountFormOpen.set(true);
+}
+
+closeAccountForm(): void {
+  if (this.isSavingAccount()) {
+    return;
+  }
+
+  this.accountFormOpen.set(false);
+  this.accountFormError.set('');
+}
+
+async createAccount(): Promise<void> {
+  this.accountFormError.set('');
+
+  const user =
+    this.authService.currentUser;
+
+  if (!user) {
+    this.accountFormError.set(
+      'No se encontró una sesión activa.',
+    );
+
+    return;
+  }
+
+  const name =
+    this.accountName.trim();
+
+  if (!name) {
+    this.accountFormError.set(
+      'Ingresa un nombre para la cuenta.',
+    );
+
+    return;
+  }
+
+  const initialBalance =
+    this.initialBalance ?? 0;
+
+  if (
+    !Number.isFinite(initialBalance) ||
+    initialBalance < 0
+  ) {
+    this.accountFormError.set(
+      'El saldo inicial no puede ser negativo.',
+    );
+
+    return;
+  }
+
+  if (this.isSavingAccount()) {
+    return;
+  }
+
+  this.isSavingAccount.set(true);
+
+  let accountId: string | null = null;
+
+  try {
+    accountId =
+      await this.accountService.createAccount(
+        user.uid,
+        {
+          name,
+          type: this.accountType,
+          currency: this.accountCurrency,
+        },
+      );
+
+    if (initialBalance > 0) {
+      await this.transactionService.createIncome(
+        user.uid,
+        {
+          amount: initialBalance,
+          date: new Date(),
+          assetId: accountId,
+          note: 'Saldo inicial',
+          source: 'otros',
+          tags: 'saldo-inicial',
+          isInitialBalance: true,
+          account: name,
+        },
+      );
+    }
+
+    this.accountFormOpen.set(false);
+
+    await this.loadPortfolio();
+  } catch (error) {
+    console.error(
+      'Account creation error:',
+      error,
+    );
+
+    /*
+     * Si la cuenta alcanzó a crearse pero falló
+     * el saldo inicial, la archivamos para no
+     * dejar una cuenta visible incompleta.
+     */
+    if (accountId) {
+      try {
+        await this.accountService.archiveAccount(
+          user.uid,
+          accountId,
+        );
+      } catch (rollbackError) {
+        console.error(
+          'Account creation rollback error:',
+          rollbackError,
+        );
+      }
+    }
+
+    this.accountFormError.set(
+      'No se pudo crear la cuenta.',
+    );
+  } finally {
+    this.isSavingAccount.set(false);
+  }
+}
 
   getCurrencySymbol(currency: string): string {
     switch (currency) {
