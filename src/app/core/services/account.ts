@@ -29,37 +29,80 @@ export class AccountService {
   private readonly firestore = inject(Firestore);
   private readonly injector = inject(Injector);
 
-  async getAccounts(uid: string): Promise<Account[]> {
-    const snapshot = await runInInjectionContext(
+  async getAccounts(
+  uid: string,
+): Promise<Account[]> {
+  const accounts =
+    await this.getAllAccounts(uid);
+
+  return accounts.filter(
+    (account) => account.active,
+  );
+}
+
+async getAllAccounts(
+  uid: string,
+): Promise<Account[]> {
+  const snapshot =
+    await runInInjectionContext(
       this.injector,
       () => {
-        const accountsRef = collection(
-          this.firestore,
-          `users/${uid}/assets`,
-        );
+        const accountsRef =
+          collection(
+            this.firestore,
+            `users/${uid}/assets`,
+          );
 
-        return getDocs(accountsRef);
+        return getDocs(
+          accountsRef,
+        );
       },
     );
 
-    return snapshot.docs
-      .map((document) => {
-        const data = document.data();
+  return snapshot.docs.map(
+    (document) => {
+      const data =
+        document.data();
 
-        return {
-          id: document.id,
-          name: String(data['name'] ?? ''),
-          type: this.normalizeAccountType(data['type']),
-          currency: this.normalizeCurrency(data['currency']),
-          active: data['active'] !== false,
-          createdAt: this.toDate(data['createdAt']),
-          updatedAt: this.toDate(data['updatedAt']),
-          archivedAt: this.toDate(data['archivedAt']),
-        } satisfies Account;
-      })
-      .filter((account) => account.active);
-  }
+      return {
+        id: document.id,
 
+        name:
+          String(
+            data['name'] ?? '',
+          ),
+
+        type:
+          this.normalizeAccountType(
+            data['type'],
+          ),
+
+        currency:
+          this.normalizeCurrency(
+            data['currency'],
+          ),
+
+        active:
+          data['active'] !== false,
+
+        createdAt:
+          this.toDate(
+            data['createdAt'],
+          ),
+
+        updatedAt:
+          this.toDate(
+            data['updatedAt'],
+          ),
+
+        archivedAt:
+          this.toDate(
+            data['archivedAt'],
+          ),
+      } satisfies Account;
+    },
+  );
+}
   async createAccount(
     uid: string,
     account: Omit<

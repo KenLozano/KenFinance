@@ -1,249 +1,418 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Portafolio</ion-title>
+    <ion-title>
+      Portafolio
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+
   <main class="portfolio-page">
 
     <section class="portfolio-summary">
-      <h2>Saldo total</h2>
+
+      <h2>
+        Saldo total
+      </h2>
 
       @if (isLoading()) {
 
-        <p>Cargando portafolio...</p>
+        <p>
+          Cargando portafolio...
+        </p>
 
       } @else if (errorMessage()) {
 
-        <p>{{ errorMessage() }}</p>
+        <p>
+          {{ errorMessage() }}
+        </p>
 
       } @else {
 
         <div class="currency-totals">
 
-          @if (totalsByCurrency()['PEN'] !== undefined) {
+          @if (
+            totalsByCurrency()['PEN']
+              !== undefined
+          ) {
             <strong>
               S/
-              {{ totalsByCurrency()['PEN'].toFixed(2) }}
+              {{
+                totalsByCurrency()['PEN']
+                  .toFixed(2)
+              }}
             </strong>
           }
 
-          @if (totalsByCurrency()['USD'] !== undefined) {
+          @if (
+            totalsByCurrency()['USD']
+              !== undefined
+          ) {
             <strong>
               $
-              {{ totalsByCurrency()['USD'].toFixed(2) }}
+              {{
+                totalsByCurrency()['USD']
+                  .toFixed(2)
+              }}
             </strong>
           }
 
-          @if (totalsByCurrency()['EUR'] !== undefined) {
+          @if (
+            totalsByCurrency()['EUR']
+              !== undefined
+          ) {
             <strong>
               €
-              {{ totalsByCurrency()['EUR'].toFixed(2) }}
+              {{
+                totalsByCurrency()['EUR']
+                  .toFixed(2)
+              }}
             </strong>
           }
 
-          @if (accounts().length === 0) {
-            <strong>S/ 0.00</strong>
+          @if (
+            accounts().length === 0
+          ) {
+            <strong>
+              S/ 0.00
+            </strong>
           }
 
         </div>
 
       }
+
     </section>
 
     <section class="accounts-section">
+
       <header>
-  <div>
-    <h2>Cuentas</h2>
 
-    <p>
-      {{ accounts().length }}
-      cuenta(s) activa(s)
-    </p>
-  </div>
+        <div>
+          <h2>
+            Cuentas
+          </h2>
 
-  <button
-    type="button"
-    (click)="openCreateAccount()"
-  >
-    + Nueva cuenta
-  </button>
-</header>
-
-      @if (accountFormOpen()) {
-
-  <section class="account-form-card">
-
-    <header>
-      <div>
-        <span>
-          CUENTA
-        </span>
-
-        <h3>
-          Nueva cuenta
-        </h3>
-      </div>
-    </header>
-
-    <form
-      (ngSubmit)="createAccount()"
-    >
-
-      <label>
-        Nombre
-
-        <input
-          type="text"
-          name="accountName"
-          [(ngModel)]="accountName"
-          maxlength="60"
-          placeholder="Ej. Yape, BCP, Efectivo..."
-          required
-        />
-      </label>
-
-      <label>
-        Tipo de cuenta
-
-        <select
-          name="accountType"
-          [(ngModel)]="accountType"
-          required
-        >
-          <option value="bank_account">
-            Cuenta bancaria
-          </option>
-
-          <option value="wallet">
-            Billetera digital
-          </option>
-
-          <option value="cash">
-            Efectivo
-          </option>
-
-          <option value="credit_card">
-            Tarjeta de crédito
-          </option>
-
-          <option value="crypto">
-            Criptomonedas
-          </option>
-        </select>
-      </label>
-
-      <label>
-        Moneda
-
-        <select
-          name="accountCurrency"
-          [(ngModel)]="accountCurrency"
-          required
-        >
-          <option value="PEN">
-            PEN · Sol peruano
-          </option>
-
-          <option value="USD">
-            USD · Dólar
-          </option>
-
-          <option value="EUR">
-            EUR · Euro
-          </option>
-        </select>
-      </label>
-
-      <label>
-        Saldo inicial
-
-        <div class="money-input">
-          <span>
-            {{
-              getCurrencySymbol(
-                accountCurrency
-              )
-            }}
-          </span>
-
-          <input
-            type="number"
-            name="initialBalance"
-            [(ngModel)]="initialBalance"
-            min="0"
-            step="0.01"
-            inputmode="decimal"
-            placeholder="0.00"
-          />
+          <p>
+            {{ accounts().length }}
+            cuenta(s) activa(s)
+          </p>
         </div>
-      </label>
-
-      <small>
-        Si la cuenta empieza en cero,
-        puedes dejar el saldo inicial vacío.
-      </small>
-
-      @if (accountFormError()) {
-        <p class="message error">
-          {{ accountFormError() }}
-        </p>
-      }
-
-      <div class="form-actions">
 
         <button
           type="button"
-          [disabled]="isSavingAccount()"
-          (click)="closeAccountForm()"
+          (click)="openCreateAccount()"
         >
-          Cancelar
+          + Nueva cuenta
         </button>
 
-        <button
-          type="submit"
-          [disabled]="isSavingAccount()"
-        >
-          @if (isSavingAccount()) {
-            Creando...
-          } @else {
-            Crear cuenta
-          }
-        </button>
+      </header>
 
-      </div>
+      @if (accountFormOpen()) {
 
-    </form>
+        <section class="account-form-card">
 
-  </section>
+          <header>
 
+            <div>
+              <span>
+                CUENTA
+              </span>
+
+              <h3>
+                {{
+                  isEditMode()
+                    ? 'Editar cuenta'
+                    : 'Nueva cuenta'
+                }}
+              </h3>
+            </div>
+
+          </header>
+
+          <form
+            (ngSubmit)="saveAccount()"
+          >
+
+            <label>
+              Nombre
+
+              <input
+                type="text"
+                name="accountName"
+                [(ngModel)]="accountName"
+                maxlength="60"
+                placeholder="Ej. Yape, BCP, Efectivo..."
+                required
+              />
+            </label>
+
+            <label>
+              Tipo de cuenta
+
+              <select
+                name="accountType"
+                [(ngModel)]="accountType"
+                required
+              >
+
+                <option
+                  value="bank_account"
+                >
+                  Cuenta bancaria
+                </option>
+
+                <option
+                  value="wallet"
+                >
+                  Billetera digital
+                </option>
+
+                <option
+                  value="cash"
+                >
+                  Efectivo
+                </option>
+
+                <option
+                  value="credit_card"
+                >
+                  Tarjeta de crédito
+                </option>
+
+                <option
+                  value="crypto"
+                >
+                  Criptomonedas
+                </option>
+
+              </select>
+            </label>
+
+            <label>
+              Moneda
+
+              <select
+                name="accountCurrency"
+                [(ngModel)]="accountCurrency"
+                [disabled]="
+                  isEditMode() &&
+                  hasTransactions(
+                    editingAccountId() ?? ''
+                  )
+                "
+                required
+              >
+
+                <option value="PEN">
+                  PEN · Sol peruano
+                </option>
+
+                <option value="USD">
+                  USD · Dólar
+                </option>
+
+                <option value="EUR">
+                  EUR · Euro
+                </option>
+
+              </select>
+            </label>
+
+            @if (
+              isEditMode() &&
+              hasTransactions(
+                editingAccountId() ?? ''
+              )
+            ) {
+              <small>
+                La moneda no puede modificarse
+                porque esta cuenta ya tiene
+                movimientos registrados.
+              </small>
+            }
+
+            @if (!isEditMode()) {
+
+              <label>
+                Saldo inicial
+
+                <div class="money-input">
+
+                  <span>
+                    {{
+                      getCurrencySymbol(
+                        accountCurrency
+                      )
+                    }}
+                  </span>
+
+                  <input
+                    type="number"
+                    name="initialBalance"
+                    [(ngModel)]="
+                      initialBalance
+                    "
+                    min="0"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="0.00"
+                  />
+
+                </div>
+              </label>
+
+              <small>
+                Si la cuenta empieza en cero,
+                puedes dejar el saldo inicial vacío.
+              </small>
+
+            }
+
+            @if (accountFormError()) {
+              <p class="message error">
+                {{ accountFormError() }}
+              </p>
+            }
+
+            <div class="form-actions">
+
+              <button
+                type="button"
+                [disabled]="
+                  isSavingAccount()
+                "
+                (click)="
+                  closeAccountForm()
+                "
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                [disabled]="
+                  isSavingAccount()
+                "
+              >
+
+                @if (isSavingAccount()) {
+                  Guardando...
+                } @else if (
+                  isEditMode()
+                ) {
+                  Guardar cambios
+                } @else {
+                  Crear cuenta
+                }
+
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+      }
+
+      @if (accountActionError()) {
+  <p class="message error">
+    {{ accountActionError() }}
+  </p>
 }
-      @if (!isLoading() && !errorMessage()) {
+      @if (
+        !isLoading() &&
+        !errorMessage()
+      ) {
 
-        @if (accounts().length > 0) {
+        @if (
+          accounts().length > 0
+        ) {
 
           <div class="accounts-grid">
 
-            @for (account of accounts(); track account.id) {
+            @for (
+              account of accounts();
+              track account.id
+            ) {
 
-              <article class="account-card">
-                <div class="account-info">
-                  <h3>{{ account.name }}</h3>
+              <article
+                class="account-card"
+              >
+
+                <div
+                  class="account-info"
+                >
+
+                  <h3>
+                    {{ account.name }}
+                  </h3>
 
                   <p>
-                    {{ getTypeLabel(account.type) }}
+                    {{
+                      getTypeLabel(
+                        account.type
+                      )
+                    }}
                   </p>
 
                   <span>
                     {{ account.currency }}
                   </span>
+
+                  <button
+                    type="button"
+                    (click)="
+                      openEditAccount(
+                        account
+                      )
+                    "
+                  >
+                    Editar
+                  </button>
+
+                  <button
+  type="button"
+  [disabled]="
+    archivingAccountId() ===
+    account.id
+  "
+  (click)="
+    archiveAccount(
+      account
+    )
+  "
+>
+  @if (
+    archivingAccountId() ===
+    account.id
+  ) {
+    Archivando...
+  } @else {
+    Archivar
+  }
+</button>
+
                 </div>
 
-                <strong class="account-balance">
-                  {{ getCurrencySymbol(account.currency) }}
-                  {{ getBalance(account.id).toFixed(2) }}
+                <strong
+                  class="account-balance"
+                >
+                  {{
+                    getCurrencySymbol(
+                      account.currency
+                    )
+                  }}
+
+                  {{
+                    getBalance(
+                      account.id
+                    ).toFixed(2)
+                  }}
                 </strong>
+
               </article>
 
             }
@@ -259,7 +428,9 @@
         }
 
       }
+
     </section>
 
   </main>
+
 </ion-content>

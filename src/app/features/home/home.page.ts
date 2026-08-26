@@ -92,6 +92,7 @@ export class HomePage implements OnInit {
 
   readonly profile = signal<UserProfile | null>(null);
   readonly accounts = signal<Account[]>([]);
+  readonly allAccounts = signal<Account[]>([]);
   readonly transactions = signal<Transaction[]>([]);
 
   readonly isLoading = signal(true);
@@ -298,22 +299,35 @@ export class HomePage implements OnInit {
   const uid = user.uid;
 
   try {
-    const [
-      profile,
-      accounts,
-      transactions,
-      plan,
-    ] = await Promise.all([
-      this.profileService.getProfile(uid),
-      this.accountService.getAccounts(uid),
-      this.transactionService.getAllTransactions(uid),
-      this.planService.getPlan(uid),
-    ]);
+      const [
+  profile,
+  allAccounts,
+  transactions,
+  plan,
+] = await Promise.all([
+  this.profileService.getProfile(uid),
+  this.accountService.getAllAccounts(uid),
+  this.transactionService.getAllTransactions(uid),
+  this.planService.getPlan(uid),
+]);
 
     this.profile.set(profile);
-    this.accounts.set(accounts);
-    this.transactions.set(transactions);
-    this.plan.set(plan);
+
+this.allAccounts.set(
+  allAccounts,
+);
+
+this.accounts.set(
+  allAccounts.filter(
+    (account) => account.active,
+  ),
+);
+
+this.transactions.set(
+  transactions,
+);
+
+this.plan.set(plan);
   } catch (error) {
     console.error(
       'Home load error:',
@@ -426,22 +440,29 @@ export class HomePage implements OnInit {
     return result;
   }
 
-   getTransactionCurrency(
-    transaction: Transaction,
-  ): CurrencyCode {
-    const account = this.accounts().find(
+    getTransactionCurrency(
+  transaction: Transaction,
+): CurrencyCode {
+  const account =
+    this.allAccounts().find(
       (item) =>
-        item.id === transaction.assetId,
+        item.id ===
+        transaction.assetId,
     );
 
-    if (account) {
-      return account.currency;
-    }
-
-    // Compatibilidad con movimientos antiguos
-    // que pudieran no tener assetId.
-    return this.profile()?.currency ?? 'PEN';
+  if (account) {
+    return account.currency;
   }
+
+  // Compatibilidad con movimientos antiguos
+  // que pudieran no tener una cuenta asociada.
+  return (
+    this.profile()?.currency ??
+    'PEN'
+  );
+}
+
+   
 
   getCurrencySymbol(
     currency: CurrencyCode | string,
@@ -460,16 +481,17 @@ export class HomePage implements OnInit {
   }
 
   getTransactionAccountName(
-    transaction: Transaction,
-  ): string {
-    return (
-      this.accounts().find(
-        (account) =>
-          account.id === transaction.assetId,
-      )?.name ??
-      'Cuenta no identificada'
-    );
-  }
+  transaction: Transaction,
+): string {
+  return (
+    this.allAccounts().find(
+      (account) =>
+        account.id ===
+        transaction.assetId,
+    )?.name ??
+    'Cuenta no identificada'
+  );
+}
 
   formatTransactionDate(
     date: Date,

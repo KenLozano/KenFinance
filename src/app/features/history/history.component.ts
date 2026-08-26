@@ -559,7 +559,7 @@ readonly availableCurrencies = computed<
         accounts,
         transactions,
       ] = await Promise.all([
-        this.accountService.getAccounts(uid),
+        this.accountService.getAllAccounts(uid),
         this.transactionService
           .getAllTransactions(uid),
       ]);
