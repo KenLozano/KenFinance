@@ -26,7 +26,9 @@ export class ExpenseDistributionComponent {
     );
   }
 
-  getPercentage(amount: number): number {
+  getPercentage(
+    amount: number,
+  ): number {
     if (this.total <= 0) {
       return 0;
     }

@@ -96,6 +96,15 @@ export const routes: Routes = [
       (m) => m.IncomeFormComponent,
     ),
 },
+{
+  path: 'transactions/expense',
+  loadComponent: () =>
+    import(
+      './features/transactions/expense-form/expense-form.component'
+    ).then(
+      (m) => m.ExpenseFormComponent,
+    ),
+},
     ],
   },
 

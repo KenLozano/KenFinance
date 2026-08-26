@@ -1,3 +1,240 @@
-<p>
-  expense-form works!
-</p>
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Nuevo gasto</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <main class="transaction-page">
+
+    <header class="form-header">
+      <span class="eyebrow">
+        MOVIMIENTO
+      </span>
+
+      <h1>Registrar gasto</h1>
+
+      <p>
+        Registra una salida de dinero desde una de tus cuentas.
+      </p>
+    </header>
+
+    @if (isLoading()) {
+
+      <section class="status-card">
+        Cargando cuentas...
+      </section>
+
+    } @else {
+
+      <form
+        class="transaction-form"
+        (ngSubmit)="submit()"
+      >
+
+        <section class="form-card">
+
+          <label>
+            Monto
+
+            <div class="money-input">
+              <span>
+                {{
+                  getCurrencySymbol(
+                    getSelectedCurrency()
+                  )
+                }}
+              </span>
+
+              <input
+                type="number"
+                name="amount"
+                [(ngModel)]="amount"
+                min="0.01"
+                step="0.01"
+                inputmode="decimal"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </label>
+
+          <label>
+            Cuenta
+
+            <select
+              name="assetId"
+              [(ngModel)]="assetId"
+              required
+            >
+              <option value="">
+                Selecciona una cuenta
+              </option>
+
+              @for (
+                account of accounts();
+                track account.id
+              ) {
+                <option [value]="account.id">
+                  {{ account.name }}
+                  ·
+                  {{ account.currency }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Fecha
+
+            <input
+              type="date"
+              name="date"
+              [(ngModel)]="date"
+              required
+            />
+          </label>
+
+          <label>
+            Categoría
+
+            <select
+              name="category"
+              [(ngModel)]="category"
+              required
+            >
+              <option value="">
+                Selecciona una categoría
+              </option>
+
+              <option value="green">
+                Fijo
+              </option>
+
+              <option value="yellow">
+                Necesario
+              </option>
+
+              <option value="red">
+                Antojo
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Comercio
+
+            <input
+              type="text"
+              name="merchant"
+              [(ngModel)]="merchant"
+              maxlength="80"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label>
+            Método de pago
+
+            <select
+              name="method"
+              [(ngModel)]="method"
+            >
+              <option value="efectivo">
+                Efectivo
+              </option>
+
+              <option value="debito">
+                Débito
+              </option>
+
+              <option value="credito">
+                Crédito
+              </option>
+
+              <option value="transferencia">
+                Transferencia
+              </option>
+
+              <option value="billetera">
+                Billetera
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Prioridad
+
+            <select
+              name="priority"
+              [(ngModel)]="priority"
+            >
+              <option value="alta">
+                Alta
+              </option>
+
+              <option value="media">
+                Media
+              </option>
+
+              <option value="baja">
+                Baja
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Nota
+
+            <textarea
+              name="note"
+              [(ngModel)]="note"
+              maxlength="250"
+              rows="3"
+              placeholder="Descripción opcional"
+            ></textarea>
+          </label>
+
+        </section>
+
+        @if (errorMessage()) {
+          <p class="message error">
+            {{ errorMessage() }}
+          </p>
+        }
+
+        <div class="form-actions">
+
+          <ion-button
+            type="button"
+            fill="outline"
+            [disabled]="isSaving()"
+            (click)="cancel()"
+          >
+            Cancelar
+          </ion-button>
+
+          <ion-button
+            type="submit"
+            [disabled]="
+              isSaving() ||
+              accounts().length === 0
+            "
+          >
+            @if (isSaving()) {
+              Guardando...
+            } @else {
+              Registrar gasto
+            }
+          </ion-button>
+
+        </div>
+
+      </form>
+
+    }
+
+  </main>
+
+</ion-content>

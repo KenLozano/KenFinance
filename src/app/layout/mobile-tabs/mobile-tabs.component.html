@@ -20,13 +20,13 @@
   </a>
 
   <button
-    type="button"
-    class="primary-action"
-    disabled
-    title="Registro rápido próximamente"
-  >
-    <span>+</span>
-  </button>
+  type="button"
+  class="primary-action"
+  aria-label="Nuevo movimiento"
+  (click)="openQuickMenu()"
+>
+  <span>+</span>
+</button>
 
   <a
     routerLink="/portfolio"
@@ -45,3 +45,7 @@
   </a>
 
 </nav>
+<app-transaction-quick-menu
+  [open]="quickMenuOpen()"
+  (closed)="closeQuickMenu()"
+></app-transaction-quick-menu>
