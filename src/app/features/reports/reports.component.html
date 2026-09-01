@@ -1,0 +1,272 @@
+<ion-header [translucent]="true">
+
+  <ion-toolbar>
+    <ion-title>
+      Reportes
+    </ion-title>
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <main class="reports-page">
+
+    <header class="reports-header">
+
+      <span class="eyebrow">
+        ANÁLISIS
+      </span>
+
+      <h1>
+        Reportes financieros
+      </h1>
+
+      <p>
+        Genera reportes de tus
+        movimientos por periodo.
+      </p>
+
+    </header>
+
+    @if (isLoading()) {
+
+      <section class="status-card">
+        Preparando reportes...
+      </section>
+
+    } @else if (errorMessage()) {
+
+      <p class="message error">
+        {{ errorMessage() }}
+      </p>
+
+    }
+
+    @if (!isLoading()) {
+
+      <section class="report-period">
+
+        <h2>
+          Periodo
+        </h2>
+
+        <div class="period-buttons">
+
+          <button
+            type="button"
+            [class.active]="
+              periodType() === 'week'
+            "
+            (click)="
+              setPeriod('week')
+            "
+          >
+            7 días
+          </button>
+
+          <button
+            type="button"
+            [class.active]="
+              periodType() === 'month'
+            "
+            (click)="
+              setPeriod('month')
+            "
+          >
+            Mes
+          </button>
+
+          <button
+            type="button"
+            [class.active]="
+              periodType() === 'custom'
+            "
+            (click)="
+              setPeriod('custom')
+            "
+          >
+            Rango
+          </button>
+
+        </div>
+
+        @if (
+          periodType() ===
+          'custom'
+        ) {
+
+          <div class="custom-range">
+
+            <label>
+              Desde
+
+              <input
+                type="date"
+                name="customStart"
+                [(ngModel)]="
+                  customStart
+                "
+              />
+            </label>
+
+            <label>
+              Hasta
+
+              <input
+                type="date"
+                name="customEnd"
+                [(ngModel)]="
+                  customEnd
+                "
+              />
+            </label>
+
+          </div>
+
+        }
+
+      </section>
+
+      @if (
+        reportData();
+        as report
+      ) {
+
+        <section class="report-summary">
+
+          <header>
+            <div>
+
+              <span class="eyebrow">
+                RESUMEN
+              </span>
+
+              <h2>
+                {{ report.period.label }}
+              </h2>
+
+            </div>
+          </header>
+
+          @if (
+            report.summaries.length >
+            0
+          ) {
+
+            <div class="summary-grid">
+
+              @for (
+                summary
+                of report.summaries;
+                track summary.currency
+              ) {
+
+                <article
+                  class="summary-card"
+                >
+
+                  <strong>
+                    {{ summary.currency }}
+                  </strong>
+
+                  <span>
+                    Ingresos
+                  </span>
+
+                  <b>
+                    {{
+                      getCurrencySymbol(
+                        summary.currency
+                      )
+                    }}
+
+                    {{
+                      summary.income
+                        .toFixed(2)
+                    }}
+                  </b>
+
+                  <span>
+                    Gastos
+                  </span>
+
+                  <b>
+                    {{
+                      getCurrencySymbol(
+                        summary.currency
+                      )
+                    }}
+
+                    {{
+                      summary.expenses
+                        .toFixed(2)
+                    }}
+                  </b>
+
+                  <span>
+                    Balance
+                  </span>
+
+                  <b>
+                    {{
+                      getCurrencySymbol(
+                        summary.currency
+                      )
+                    }}
+
+                    {{
+                      summary.balance
+                        .toFixed(2)
+                    }}
+                  </b>
+
+                </article>
+
+              }
+
+            </div>
+
+          } @else {
+
+            <p>
+              No existen movimientos
+              en este periodo.
+            </p>
+
+          }
+
+        </section>
+
+        <section class="report-actions">
+
+          <ion-button
+            type="button"
+            [disabled]="
+              isExporting()
+            "
+            (click)="exportPdf()"
+          >
+            Exportar PDF
+          </ion-button>
+
+          <ion-button
+            type="button"
+            fill="outline"
+            [disabled]="
+              isExporting()
+            "
+            (click)="exportExcel()"
+          >
+            Exportar Excel
+          </ion-button>
+
+        </section>
+
+      }
+
+    }
+
+  </main>
+
+</ion-content>

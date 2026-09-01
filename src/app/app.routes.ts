@@ -105,10 +105,7 @@ export const routes: Routes = [
       (m) => m.ExpenseFormComponent,
     ),
 },
-    ],
-  },
-
-  {
+{
   path: 'transactions/income/:id',
   loadComponent: () =>
     import(
@@ -126,6 +123,40 @@ export const routes: Routes = [
       (m) => m.ExpenseFormComponent,
     ),
 },
+
+{
+  path: 'profile',
+  loadComponent: () =>
+    import(
+      './features/profile/profile.component'
+    ).then(
+      (m) => m.ProfileComponent,
+    ),
+},
+
+{
+  path: 'plan',
+  loadComponent: () =>
+    import(
+      './features/plan/plan.component'
+    ).then(
+      (m) => m.PlanComponent,
+    ),
+},
+
+{
+  path: 'reports',
+  loadComponent: () =>
+    import(
+      './features/reports/reports.component'
+    ).then(
+      (m) => m.ReportsComponent,
+    ),
+},
+    ],
+  },
+
+  
   {
     path: '**',
     redirectTo: 'home',

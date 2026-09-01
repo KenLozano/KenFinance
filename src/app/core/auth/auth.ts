@@ -1,4 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import {
+  Injectable,
+  Injector,
+  inject,
+  runInInjectionContext,
+} from '@angular/core';
 
 import {
   Auth as FirebaseAuth,
@@ -20,18 +25,27 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly auth = inject(FirebaseAuth);
+  private readonly auth =
+    inject(FirebaseAuth);
 
-  readonly user$: Observable<User | null> = authState(this.auth);
+  private readonly injector =
+    inject(Injector);
+
+  readonly user$: Observable<User | null> =
+    authState(this.auth);
 
   login(
     email: string,
     password: string,
   ): Promise<UserCredential> {
-    return signInWithEmailAndPassword(
-      this.auth,
-      email,
-      password,
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        signInWithEmailAndPassword(
+          this.auth,
+          email,
+          password,
+        ),
     );
   }
 
@@ -39,21 +53,35 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<UserCredential> {
-    return createUserWithEmailAndPassword(
-      this.auth,
-      email,
-      password,
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        createUserWithEmailAndPassword(
+          this.auth,
+          email,
+          password,
+        ),
     );
   }
 
   logout(): Promise<void> {
-    return signOut(this.auth);
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        signOut(this.auth),
+    );
   }
 
-  sendPasswordReset(email: string): Promise<void> {
-    return sendPasswordResetEmail(
-      this.auth,
-      email,
+  sendPasswordReset(
+    email: string,
+  ): Promise<void> {
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        sendPasswordResetEmail(
+          this.auth,
+          email,
+        ),
     );
   }
 
@@ -61,21 +89,34 @@ export class AuthService {
     user: User,
     name: string,
   ): Promise<void> {
-    return updateProfile(user, {
-      displayName: name,
-    });
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        updateProfile(
+          user,
+          {
+            displayName: name,
+          },
+        ),
+    );
   }
 
-  loginWithGoogle(): Promise<UserCredential> {
-    const provider = new GoogleAuthProvider();
+  loginWithGoogle():
+    Promise<UserCredential> {
+    const provider =
+      new GoogleAuthProvider();
 
     provider.setCustomParameters({
       prompt: 'select_account',
     });
 
-    return signInWithPopup(
-      this.auth,
-      provider,
+    return runInInjectionContext(
+      this.injector,
+      () =>
+        signInWithPopup(
+          this.auth,
+          provider,
+        ),
     );
   }
 

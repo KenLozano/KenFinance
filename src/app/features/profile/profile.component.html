@@ -1,0 +1,259 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Perfil
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <main class="profile-page">
+
+    <header class="profile-header">
+      <span class="eyebrow">
+        CUENTA
+      </span>
+
+      <h1>
+        Mi perfil
+      </h1>
+
+      <p>
+        Administra tu información personal
+        y preferencias financieras.
+      </p>
+    </header>
+
+    @if (isLoading()) {
+
+      <section class="status-card">
+        Cargando perfil...
+      </section>
+
+    } @else {
+
+      <form
+        class="profile-form"
+        (ngSubmit)="saveProfile()"
+      >
+
+        <section class="profile-card">
+
+          <h2>
+            Información personal
+          </h2>
+
+          <label>
+            Nombre
+
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="name"
+              maxlength="80"
+              required
+            />
+          </label>
+
+          <label>
+            Correo de la cuenta
+
+            <input
+              type="email"
+              [value]="accountEmail()"
+              disabled
+            />
+          </label>
+
+          <label>
+            Teléfono
+
+            <input
+              type="tel"
+              name="phone"
+              [(ngModel)]="phone"
+              maxlength="30"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label>
+            Fecha de nacimiento
+
+            <input
+              type="date"
+              name="birthday"
+              [(ngModel)]="birthday"
+            />
+          </label>
+
+          <label>
+            Ciudad
+
+            <input
+              type="text"
+              name="city"
+              [(ngModel)]="city"
+              maxlength="80"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label>
+            País
+
+            <input
+              type="text"
+              name="country"
+              [(ngModel)]="country"
+              maxlength="80"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label>
+            Ocupación
+
+            <input
+              type="text"
+              name="occupation"
+              [(ngModel)]="occupation"
+              maxlength="80"
+              placeholder="Opcional"
+            />
+          </label>
+
+        </section>
+
+        <section class="profile-card">
+
+          <h2>
+            Preferencias financieras
+          </h2>
+
+          <label>
+            Moneda base
+
+            <select
+              name="currency"
+              [(ngModel)]="currency"
+              required
+            >
+              <option value="PEN">
+                PEN · Sol peruano
+              </option>
+
+              <option value="USD">
+                USD · Dólar
+              </option>
+
+              <option value="EUR">
+                EUR · Euro
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Meta mensual
+
+            <input
+              type="number"
+              name="monthlyTarget"
+              [(ngModel)]="monthlyTarget"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="0.00"
+            />
+          </label>
+
+        </section>
+
+        <section class="profile-card">
+
+          <h2>
+            Información adicional
+          </h2>
+
+          <label>
+            Biografía
+
+            <textarea
+              name="bio"
+              [(ngModel)]="bio"
+              maxlength="500"
+              rows="4"
+              placeholder="Opcional"
+            ></textarea>
+          </label>
+
+          <label>
+            Correo de recuperación
+
+            <input
+              type="email"
+              name="recoveryEmail"
+              [(ngModel)]="recoveryEmail"
+              maxlength="120"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label>
+            Contacto de emergencia
+
+            <input
+              type="text"
+              name="emergencyContact"
+              [(ngModel)]="emergencyContact"
+              maxlength="120"
+              placeholder="Opcional"
+            />
+          </label>
+
+        </section>
+
+        @if (errorMessage()) {
+          <p class="message error">
+            {{ errorMessage() }}
+          </p>
+        }
+
+        @if (successMessage()) {
+          <p class="message success">
+            {{ successMessage() }}
+          </p>
+        }
+
+        <div class="form-actions">
+
+          <ion-button
+            type="button"
+            fill="outline"
+            [disabled]="isSaving()"
+            (click)="cancel()"
+          >
+            Cancelar
+          </ion-button>
+
+          <ion-button
+            type="submit"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+              Guardando...
+            } @else {
+              Guardar cambios
+            }
+          </ion-button>
+
+        </div>
+
+      </form>
+
+    }
+
+  </main>
+
+</ion-content>

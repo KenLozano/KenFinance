@@ -28,8 +28,10 @@
     "@capacitor/status-bar": "8.0.3",
     "@ionic/angular": "^9.0.0",
     "ionicons": "^8.1.0",
+    "jspdf": "^4.2.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {

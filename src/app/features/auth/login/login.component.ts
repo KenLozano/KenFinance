@@ -1,6 +1,15 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+
+import {
+  Router,
+  RouterLink,
+} from '@angular/router';
 
 import {
   IonButton,
@@ -30,60 +39,97 @@ import { AuthService } from '../../../core/auth/auth';
   ],
 })
 export class LoginComponent {
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly authService =
+    inject(AuthService);
+
+  private readonly router =
+    inject(Router);
 
   email = '';
   password = '';
 
-  isLoading = false;
-  errorMessage = '';
+  readonly isLoading =
+    signal(false);
+
+  readonly errorMessage =
+    signal('');
 
   async login(): Promise<void> {
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
-    const email = this.email.trim();
+    const email =
+      this.email.trim();
 
     if (!email || !this.password) {
-      this.errorMessage = 'Ingresa tu correo y contraseña.';
+      this.errorMessage.set(
+        'Ingresa tu correo y contraseña.',
+      );
+
       return;
     }
 
-    this.isLoading = true;
+    if (this.isLoading()) {
+      return;
+    }
+
+    this.isLoading.set(true);
 
     try {
-      await this.authService.login(email, this.password);
+      await this.authService.login(
+        email,
+        this.password,
+      );
 
-      await this.router.navigateByUrl('/home', {
-        replaceUrl: true,
-      });
+      await this.router.navigateByUrl(
+        '/home',
+        {
+          replaceUrl: true,
+        },
+      );
     } catch (error) {
-      console.error('Login error:', error);
+      console.error(
+        'Login error:',
+        error,
+      );
 
-      this.errorMessage =
-        'No se pudo iniciar sesión. Verifica tus datos.';
+      this.errorMessage.set(
+        'No se pudo iniciar sesión. Verifica tus datos.',
+      );
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 
   async loginWithGoogle(): Promise<void> {
-    this.errorMessage = '';
-    this.isLoading = true;
+    this.errorMessage.set('');
+
+    if (this.isLoading()) {
+      return;
+    }
+
+    this.isLoading.set(true);
 
     try {
-      await this.authService.loginWithGoogle();
+      await this.authService
+        .loginWithGoogle();
 
-      await this.router.navigateByUrl('/home', {
-        replaceUrl: true,
-      });
+      await this.router.navigateByUrl(
+        '/home',
+        {
+          replaceUrl: true,
+        },
+      );
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error(
+        'Google login error:',
+        error,
+      );
 
-      this.errorMessage =
-        'No se pudo iniciar sesión con Google.';
+      this.errorMessage.set(
+        'No se pudo iniciar sesión con Google.',
+      );
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }
