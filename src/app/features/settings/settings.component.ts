@@ -16,7 +16,14 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 
-import { AuthService } from '../../core/auth/auth';
+import {
+  AuthService,
+} from '../../core/auth/auth';
+
+import {
+  ThemePreference,
+  ThemeService,
+} from '../../core/services/theme';
 
 @Component({
   selector: 'app-settings',
@@ -38,11 +45,22 @@ export class SettingsComponent {
   private readonly router =
     inject(Router);
 
+  readonly themeService =
+    inject(ThemeService);
+
   readonly isLoggingOut =
     signal(false);
 
   readonly errorMessage =
     signal('');
+
+  setTheme(
+    preference: ThemePreference,
+  ): void {
+    this.themeService.setPreference(
+      preference,
+    );
+  }
 
   async logout(): Promise<void> {
     if (this.isLoggingOut()) {

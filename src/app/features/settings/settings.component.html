@@ -29,25 +29,67 @@
   </a>
 
   <a
-  routerLink="/reports"
-  class="settings-item"
->
-  Reportes
-</a>
+    routerLink="/reports"
+    class="settings-item"
+  >
+    Reportes
+  </a>
 
   <a
-  routerLink="/settings"
-  class="settings-item"
->
-  Configuración
-</a>
+    routerLink="/plan"
+    class="settings-item"
+  >
+    Plan mensual
+  </a>
 
-  <a
-  routerLink="/plan"
-  class="settings-item"
->
-  Plan mensual
-</a>
+  <section class="settings-section">
+
+    <h2>
+      Apariencia
+    </h2>
+
+    <p>
+      Elige cómo quieres ver KenFinance.
+    </p>
+
+    <div class="theme-options">
+
+      <button
+        type="button"
+        [class.active]="
+          themeService.preference() ===
+          'system'
+        "
+        (click)="setTheme('system')"
+      >
+        Sistema
+      </button>
+
+      <button
+        type="button"
+        [class.active]="
+          themeService.preference() ===
+          'light'
+        "
+        (click)="setTheme('light')"
+      >
+        Claro
+      </button>
+
+      <button
+        type="button"
+        [class.active]="
+          themeService.preference() ===
+          'dark'
+        "
+        (click)="setTheme('dark')"
+      >
+        Oscuro
+      </button>
+
+    </div>
+
+  </section>
 
   <button
     type="button"
