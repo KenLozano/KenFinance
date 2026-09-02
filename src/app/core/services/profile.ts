@@ -175,11 +175,15 @@ export class ProfileService {
       'Invalid monthly target.',
     );
   }
+  this.validateProfile(profile);//esto va acá?
+
 }
 
   async saveProfile(
+    
     uid: string,
     profile: UserProfile,
+    
   ): Promise<void> {
     const {
       updatedAt: _updatedAt,
