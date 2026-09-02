@@ -75,6 +75,107 @@ export class ProfileService {
       ),
     };
   }
+  private validateProfile(
+  profile: UserProfile,
+): void {
+  if (
+    !profile.name.trim() ||
+    profile.name.trim().length > 60
+  ) {
+    throw new Error(
+      'Invalid profile name.',
+    );
+  }
+
+  if (
+    profile.phone.trim().length > 20
+  ) {
+    throw new Error(
+      'Invalid phone length.',
+    );
+  }
+
+  if (
+    profile.birthday.length > 20
+  ) {
+    throw new Error(
+      'Invalid birthday length.',
+    );
+  }
+
+  if (
+    profile.city.trim().length > 50
+  ) {
+    throw new Error(
+      'Invalid city length.',
+    );
+  }
+
+  if (
+    profile.country.trim().length > 50
+  ) {
+    throw new Error(
+      'Invalid country length.',
+    );
+  }
+
+  if (
+    profile.occupation.trim().length > 60
+  ) {
+    throw new Error(
+      'Invalid occupation length.',
+    );
+  }
+
+  if (
+    profile.bio.trim().length > 240
+  ) {
+    throw new Error(
+      'Invalid biography length.',
+    );
+  }
+
+  if (
+    profile.recoveryEmail.trim().length > 120
+  ) {
+    throw new Error(
+      'Invalid recovery email length.',
+    );
+  }
+
+  if (
+    profile.emergencyContact.trim().length > 20
+  ) {
+    throw new Error(
+      'Invalid emergency contact length.',
+    );
+  }
+
+  if (
+    ![
+      'PEN',
+      'USD',
+      'EUR',
+    ].includes(profile.currency)
+  ) {
+    throw new Error(
+      'Invalid profile currency.',
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      profile.monthlyTarget,
+    ) ||
+    profile.monthlyTarget < 0 ||
+    profile.monthlyTarget >
+      999_999_999
+  ) {
+    throw new Error(
+      'Invalid monthly target.',
+    );
+  }
+}
 
   async saveProfile(
     uid: string,
