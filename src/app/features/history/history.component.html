@@ -216,10 +216,10 @@
                 track category
               ) {
                 <option
-                  [value]="category"
-                >
-                  {{ category }}
-                </option>
+  [value]="category"
+>
+  {{ getCategoryLabel(category) }}
+</option>
               }
 
             </select>
@@ -326,8 +326,12 @@
                     transaction.category
                   ) {
                     <small>
-                      {{ transaction.category }}
-                    </small>
+  {{
+    getCategoryLabel(
+      transaction.category
+    )
+  }}
+</small>
                   }
 
                   @if (

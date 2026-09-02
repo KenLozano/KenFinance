@@ -344,8 +344,9 @@ readonly expenseDistribution =
         }
 
         const category =
-          transaction.category ||
-          'Sin categoría';
+  this.getCategoryLabel(
+    transaction.category,
+  );
 
         const current =
           categories.get(category) ?? 0;
@@ -678,6 +679,23 @@ if (firstCurrency) {
       default:
         return 'S/';
     }
+    
+}getCategoryLabel(
+  category: string,
+): string {
+  switch (category) {
+    case 'green':
+      return 'Fijo';
+
+    case 'yellow':
+      return 'Necesario';
+
+    case 'red':
+      return 'Antojo';
+
+    default:
+      return category || 'Sin categoría';
+  }
   }
 
   getTransactionTitle(
