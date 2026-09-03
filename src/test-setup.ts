@@ -1,8 +1,13 @@
-// Polyfills for running unit tests under jsdom (the default Vitest environment).
-// Ionic components such as ion-menu and ion-split-pane query `window.matchMedia`,
-// which jsdom does not implement.
+import 'zone.js';
+import 'zone.js/testing';
+
+// Polyfills for running unit tests under jsdom.
+// Ionic components such as ion-menu and ion-split-pane
+// query window.matchMedia, which jsdom does not implement.
 if (!window.matchMedia) {
-  window.matchMedia = (query: string): MediaQueryList =>
+  window.matchMedia = (
+    query: string,
+  ): MediaQueryList =>
     ({
       matches: false,
       media: query,

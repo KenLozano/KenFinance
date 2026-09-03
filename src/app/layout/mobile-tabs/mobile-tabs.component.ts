@@ -12,6 +12,10 @@ import {
   TransactionQuickMenuComponent,
 } from '../../shared/components/transaction-quick-menu/transaction-quick-menu.component';
 
+import {
+  IonIcon,
+} from '@ionic/angular';
+
 @Component({
   selector: 'app-mobile-tabs',
   templateUrl: './mobile-tabs.component.html',
@@ -21,6 +25,7 @@ import {
     RouterLink,
     RouterLinkActive,
     TransactionQuickMenuComponent,
+    IonIcon,
   ],
 })
 export class MobileTabsComponent {

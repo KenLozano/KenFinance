@@ -18,17 +18,28 @@
     [attr.aria-expanded]="quickMenuOpen()"
     (click)="openQuickMenu()"
   >
-    <span>+</span>
+    <ion-icon
+      name="add-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
     Nuevo movimiento
   </button>
 
-  <nav class="sidebar-nav">
+  <nav
+    class="sidebar-nav"
+    aria-label="Navegación principal"
+  >
 
     <a
       routerLink="/home"
       routerLinkActive="active"
     >
-      <span class="nav-icon">⌂</span>
+      <ion-icon
+        name="home-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
       Inicio
     </a>
 
@@ -36,7 +47,11 @@
       routerLink="/history"
       routerLinkActive="active"
     >
-      <span class="nav-icon">≡</span>
+      <ion-icon
+        name="time-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
       Historial
     </a>
 
@@ -44,7 +59,11 @@
       routerLink="/portfolio"
       routerLinkActive="active"
     >
-      <span class="nav-icon">▣</span>
+      <ion-icon
+        name="wallet-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
       Portafolio
     </a>
 
@@ -52,7 +71,11 @@
       routerLink="/settings"
       routerLinkActive="active"
     >
-      <span class="nav-icon">•••</span>
+      <ion-icon
+        name="ellipsis-horizontal-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
       Más
     </a>
 

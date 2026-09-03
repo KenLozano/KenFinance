@@ -12,6 +12,7 @@ import {
   IonButton,
   IonContent,
   IonHeader,
+  IonIcon,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
@@ -71,6 +72,7 @@ type SummaryByCurrency =
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
+    IonIcon,
     RouterLink,
     IonHeader,
     IonToolbar,

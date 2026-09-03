@@ -161,20 +161,30 @@
 
           <div class="daily-actions">
 
-  <ion-button
-    type="button"
-    routerLink="/transactions/income"
-  >
-    + Ingreso
-  </ion-button>
+ <ion-button
+  type="button"
+  routerLink="/transactions/income"
+>
+  <ion-icon
+    slot="start"
+    name="arrow-down-outline"
+  ></ion-icon>
+
+  Ingreso
+</ion-button>
 
   <ion-button
-    type="button"
-    fill="outline"
-    routerLink="/transactions/expense"
-  >
-    - Gasto
-  </ion-button>
+  type="button"
+  fill="outline"
+  routerLink="/transactions/expense"
+>
+  <ion-icon
+    slot="start"
+    name="arrow-up-outline"
+  ></ion-icon>
+
+  Gasto
+</ion-button>
 
 </div>
 
@@ -233,11 +243,16 @@
           </div>
 
           <ion-button
-            routerLink="/portfolio"
-            fill="clear"
-          >
-            Ver Portafolio →
-          </ion-button>
+  routerLink="/portfolio"
+  fill="clear"
+>
+  Ver Portafolio
+
+  <ion-icon
+    slot="end"
+    name="chevron-forward-outline"
+  ></ion-icon>
+</ion-button>
 
         </article>
 
@@ -371,7 +386,12 @@
   fill="clear"
   routerLink="/history"
 >
-  Ver más →
+  Ver más
+
+  <ion-icon
+    slot="end"
+    name="chevron-forward-outline"
+  ></ion-icon>
 </ion-button>
 
         </header>

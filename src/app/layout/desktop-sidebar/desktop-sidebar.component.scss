@@ -101,10 +101,9 @@
     opacity 150ms ease,
     transform 150ms ease;
 
-  span {
-    font-size: 1.25rem;
-    line-height: 1;
-  }
+  ion-icon {
+  font-size: 1.25rem;
+}
 }
 
 .new-transaction-button:hover {
@@ -164,15 +163,15 @@
   }
 }
 
-.nav-icon {
-  display: grid;
+.sidebar-nav {
+  ion-icon {
+    flex: 0 0 22px;
 
-  width: 24px;
-  height: 24px;
+    width: 22px;
+    height: 22px;
 
-  place-items: center;
-
-  font-size: 1.1rem;
+    font-size: 1.2rem;
+  }
 }
 
 .sidebar-footer {
