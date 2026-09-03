@@ -80,34 +80,6 @@
   margin-bottom: 16px;
 }
 
-input,
-select {
-  width: 100%;
-
-  padding: 11px 12px;
-
-  border:
-    1px solid
-    rgba(127, 127, 127, 0.22);
-
-  border-radius: 10px;
-
-  background: transparent;
-  color: inherit;
-
-  font: inherit;
-}
-
-label {
-  display: grid;
-  gap: 7px;
-
-  font-size: 0.82rem;
-
-  span {
-    opacity: 0.65;
-  }
-}
 
 .period-buttons {
   display: flex;
@@ -250,16 +222,29 @@ label {
 
 .movement-amount {
   white-space: nowrap;
+
+  &.income {
+    color:
+      var(--ion-color-success);
+  }
+
+  &.expense {
+    color:
+      var(--ion-color-danger);
+  }
 }
 
-.movement-amount.income {
-  color: var(--ion-color-success);
-}
+.movement-indicator {
+  &.income {
+    background:
+      var(--ion-color-success);
+  }
 
-.movement-amount.expense {
-  color: var(--ion-color-danger);
+  &.expense {
+    background:
+      var(--ion-color-danger);
+  }
 }
-
 .empty-state {
   padding: 50px 20px;
 
@@ -273,18 +258,24 @@ label {
 
 @media (max-width: 800px) {
   .history-page {
-    padding:
-      20px 16px;
+    padding: 20px 16px;
   }
 
-  .filter-grid {
+  .filter-grid,
+  .analysis-grid {
     grid-template-columns: 1fr;
+  }
+
+  .analysis-kpis {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 600px) {
-  .history-header {
-    align-items: flex-start;
+  .history-header,
+  .analysis-header {
+    align-items: stretch;
     flex-direction: column;
   }
 
@@ -300,7 +291,24 @@ label {
       grid-column: 2;
     }
   }
+
+  .currency-selector {
+    width: 100%;
+  }
 }
+
+  .custom-range {
+    grid-template-columns: 1fr;
+  }
+
+  .movement-row {
+    grid-template-columns:
+      4px minmax(0, 1fr);
+
+    .movement-amount {
+      grid-column: 2;
+    }
+  }
 
 .history-tabs {
   display: flex;
@@ -414,5 +422,40 @@ label {
 
   .currency-selector {
     width: 100%;
+  }
+}
+.movement-actions {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-top: 8px;
+
+  button {
+    padding: 5px 9px;
+
+    border:
+      1px solid
+      rgba(127, 127, 127, 0.18);
+
+    border-radius: 8px;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+
+    font-size: 0.75rem;
+  }
+
+  button:last-child {
+    color:
+      var(--ion-color-danger);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }

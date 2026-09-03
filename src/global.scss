@@ -35,3 +35,43 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.class.css';
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.22);
+
+  border-radius: 10px;
+
+  background:
+    var(--ion-background-color);
+
+  color:
+    var(--ion-text-color);
+
+  font: inherit;
+}
+
+select option {
+  background:
+    var(--ion-background-color);
+
+  color:
+    var(--ion-text-color);
+}
+
+label {
+  display: grid;
+  gap: 7px;
+
+  font-size: 0.82rem;
+}
+
+button {
+  font: inherit;
+}
