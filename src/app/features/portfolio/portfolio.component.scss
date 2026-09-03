@@ -1,99 +1,438 @@
 .portfolio-page {
+  width: 100%;
+  max-width: 1180px;
+
+  margin: 0 auto;
+  padding: 32px;
+
   display: grid;
   gap: 24px;
-  padding: 24px;
 }
 
 .portfolio-summary,
-.accounts-section {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
+.accounts-section,
+.account-form-card {
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
 }
 
 .portfolio-summary {
-  padding: 24px;
-  border: 1px solid
-    rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  padding: 22px;
 
   h2 {
-    margin-top: 0;
+    margin: 0 0 16px;
+
+    font-size: 1.15rem;
+  }
+
+  > p {
+    margin: 0;
+
+    opacity: 0.65;
   }
 }
 
 .currency-totals {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+
+  gap: 12px;
 
   strong {
-    font-size: 1.5rem;
+    padding: 10px 14px;
+
+    border-radius: 12px;
+
+    background:
+      rgba(127, 127, 127, 0.08);
+
+    font-size: 1.35rem;
   }
 }
 
 .accounts-section {
-  header {
-    margin-bottom: 16px;
+  padding: 22px;
+
+  > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 18px;
 
     h2 {
-      margin-bottom: 4px;
+      margin: 0 0 4px;
+
+      font-size: 1.25rem;
     }
 
     p {
       margin: 0;
-      opacity: 0.65;
+
+      font-size: 0.85rem;
+
+      opacity: 0.62;
     }
+
+    > button {
+      padding: 10px 14px;
+
+      border: 0;
+
+      border-radius: 10px;
+
+      background:
+        var(--ion-color-primary);
+
+      color:
+        var(--ion-color-primary-contrast);
+
+      font-weight: 650;
+
+      cursor: pointer;
+    }
+  }
+}
+
+.account-form-card {
+  margin-bottom: 20px;
+  padding: 20px;
+
+  > header {
+    margin-bottom: 16px;
+
+    span {
+      font-size: 0.72rem;
+      font-weight: 700;
+
+      letter-spacing: 0.08em;
+
+      opacity: 0.55;
+    }
+
+    h3 {
+      margin: 4px 0 0;
+
+      font-size: 1.15rem;
+    }
+  }
+
+  form {
+    display: grid;
+    gap: 15px;
+  }
+
+  small {
+    margin-top: -5px;
+
+    line-height: 1.4;
+
+    opacity: 0.55;
+  }
+}
+
+.money-input {
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.22);
+
+  border-radius: 10px;
+
+  background:
+    var(--ion-background-color);
+
+  > span {
+    padding: 0 12px;
+
+    font-weight: 700;
+
+    opacity: 0.65;
+  }
+
+  input {
+    border: 0;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin-top: 4px;
+
+  button {
+    padding: 9px 14px;
+
+    border:
+      1px solid
+      rgba(127, 127, 127, 0.18);
+
+    border-radius: 9px;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+  }
+
+  button[type='submit'] {
+    border-color:
+      var(--ion-color-primary);
+
+    background:
+      var(--ion-color-primary);
+
+    color:
+      var(--ion-color-primary-contrast);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+
+    cursor: default;
   }
 }
 
 .accounts-grid {
   display: grid;
+
   grid-template-columns:
-    repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+    repeat(
+      auto-fit,
+      minmax(210px, 1fr)
+    );
+
+  gap: 12px;
 }
 
 .account-card {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
   gap: 16px;
 
-  padding: 20px;
+  align-items: start;
 
-  border: 1px solid
-    rgba(255, 255, 255, 0.08);
+  padding: 18px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.14);
 
   border-radius: 16px;
+
+  background:
+    rgba(127, 127, 127, 0.025);
 }
 
 .account-info {
+  min-width: 0;
+
   h3 {
-    margin: 0 0 6px;
+    margin: 0 0 5px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
   }
 
   p {
-    margin: 0 0 8px;
-    opacity: 0.7;
+    margin: 0 0 5px;
+
+    font-size: 0.84rem;
+
+    opacity: 0.65;
   }
 
   span {
-    font-size: 0.8rem;
-    opacity: 0.6;
+    display: block;
+
+    margin-bottom: 12px;
+
+    font-size: 0.75rem;
+
+    opacity: 0.55;
+  }
+
+  button {
+    margin-right: 6px;
+    padding: 5px 9px;
+
+    border:
+      1px solid
+      rgba(127, 127, 127, 0.18);
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: inherit;
+
+    font-size: 0.75rem;
+
+    cursor: pointer;
+  }
+
+  button:last-child {
+    color:
+      var(--ion-color-danger);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+
+    cursor: default;
   }
 }
 
 .account-balance {
   white-space: nowrap;
+
   font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.message {
+  margin: 0 0 16px;
+
+  padding: 12px 14px;
+
+  border-radius: 11px;
+
+  background:
+    rgba(127, 127, 127, 0.06);
+}
+
+.message.error {
+  color:
+    var(--ion-color-danger);
+}
+
+@media (max-width: 800px) {
+  .portfolio-page {
+    padding: 20px 16px;
+  }
 }
 
 @media (max-width: 600px) {
+  .accounts-section {
+    padding: 18px;
+
+    > header {
+      align-items: stretch;
+
+      flex-direction: column;
+
+      > button {
+        width: 100%;
+      }
+    }
+  }
+@media (max-width: 600px) {
   .portfolio-page {
-    padding: 16px;
+    padding: 16px 12px;
+  }
+
+  .accounts-section {
+    padding: 14px;
+  }
+
+  .accounts-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
   }
 
   .account-card {
-    flex-direction: column;
+    padding: 13px;
+
+    gap: 8px;
+  }
+
+  .account-info {
+    h3 {
+      font-size: 0.95rem;
+    }
+
+    p {
+      font-size: 0.72rem;
+    }
+
+    span {
+      margin-bottom: 8px;
+
+      font-size: 0.68rem;
+    }
+
+    button {
+      padding: 4px 6px;
+
+      margin-right: 3px;
+
+      font-size: 0.68rem;
+    }
+  }
+
+  .account-balance {
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 340px) {
+  .accounts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+  .portfolio-summary,
+  .account-form-card {
+    padding: 18px;
+  }
+
+  .account-card {
+    grid-template-columns: 1fr;
+  }
+
+  .account-balance {
+    grid-row: 1;
+  }
+
+  .form-actions {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    button {
+      width: 100%;
+    }
   }
 }

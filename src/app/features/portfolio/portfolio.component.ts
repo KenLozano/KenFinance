@@ -336,12 +336,24 @@ readonly archivingAccountId =
       );
 
   if (balanceMinorUnits !== 0) {
-    this.accountActionError.set(
-      `No puedes archivar "${account.name}" porque su saldo no es cero.`,
-    );
+  const alert =
+    await this.alertController.create({
+      header: 'No se puede archivar',
+      message:
+        `La cuenta "${account.name}" todavía tiene saldo. ` +
+        'Para archivarla, su saldo debe quedar en cero.',
+      buttons: [
+        {
+          text: 'Entendido',
+          role: 'cancel',
+        },
+      ],
+    });
 
-    return;
-  }
+  await alert.present();
+
+  return;
+}
 
   const alert =
   await this.alertController.create({

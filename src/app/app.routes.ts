@@ -3,6 +3,19 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth-guard';
 import { guestGuard } from './core/auth/guest-guard';
 
+import {
+  addCircleOutline,
+  addOutline,
+  arrowDownOutline,
+  arrowUpOutline,
+  chevronForwardOutline,
+  ellipsisHorizontalOutline,
+  homeOutline,
+  removeCircleOutline,
+  timeOutline,
+  walletOutline,
+} from 'ionicons/icons';
+
 export const routes: Routes = [
   {
     path: 'login',

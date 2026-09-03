@@ -1,2 +1,20 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+:root {
+  --kf-primary: #1faf7a;
+  --kf-primary-dark: #16845e;
+  --kf-accent: #83e6be;
+
+  --kf-surface: #f5f8f7;
+  --kf-surface-alt: #eaf1ee;
+
+  --kf-income: #22c55e;
+  --kf-expense: #ef476f;
+  --kf-warning: #f2b84b;
+}
+
+.ion-palette-dark {
+  --kf-surface: #0b1110;
+  --kf-surface-alt: #121a18;
+}

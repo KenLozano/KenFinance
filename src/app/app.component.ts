@@ -11,6 +11,8 @@ import {
 import {
   addCircleOutline,
   addOutline,
+  arrowDownOutline,
+  arrowUpOutline,
   chevronForwardOutline,
   ellipsisHorizontalOutline,
   homeOutline,
@@ -20,7 +22,13 @@ import {
 } from 'ionicons/icons';
 
 import {
+  logoGoogle,
+} from 'ionicons/icons';
+
+import {
   addIcons,
+
+  
 } from 'ionicons';
 
 import {
@@ -28,6 +36,10 @@ import {
 } from './core/services/theme';
 
 addIcons({
+
+   'logo-google': 
+   logoGoogle,
+
   'add-outline':
     addOutline,
 
@@ -51,6 +63,14 @@ addIcons({
 
   'chevron-forward-outline':
     chevronForwardOutline,
+
+    'arrow-down-outline':
+  arrowDownOutline,
+
+'arrow-up-outline':
+  arrowUpOutline,
+
+    
 });
 
 @Component({

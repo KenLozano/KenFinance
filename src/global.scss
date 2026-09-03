@@ -75,3 +75,17 @@ label {
 button {
   font: inherit;
 }
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+
+.positive {
+  color: var(--ion-color-success);
+}
+
+.negative {
+  color: var(--ion-color-danger);
+}

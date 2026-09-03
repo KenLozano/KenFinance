@@ -27,12 +27,6 @@
   }
 }
 
-.eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  opacity: 0.55;
-}
 
 .history-counts {
   display: flex;
@@ -180,17 +174,18 @@
   height: 42px;
 
   border-radius: 999px;
+
+  &.income {
+    background:
+      var(--ion-color-success);
+  }
+
+  &.expense {
+    background:
+      var(--ion-color-danger);
+  }
 }
 
-.movement-indicator.income {
-  background:
-    var(--ion-color-success);
-}
-
-.movement-indicator.expense {
-  background:
-    var(--ion-color-danger);
-}
 
 .movement-info {
   min-width: 0;
@@ -279,23 +274,12 @@
     flex-direction: column;
   }
 
-  .custom-range {
-    grid-template-columns: 1fr;
-  }
-
-  .movement-row {
-    grid-template-columns:
-      4px minmax(0, 1fr);
-
-    .movement-amount {
-      grid-column: 2;
-    }
   }
 
   .currency-selector {
     width: 100%;
   }
-}
+
 
   .custom-range {
     grid-template-columns: 1fr;
@@ -395,13 +379,6 @@
   gap: 18px;
 }
 
-.positive {
-  color: var(--ion-color-success);
-}
-
-.negative {
-  color: var(--ion-color-danger);
-}
 
 @media (max-width: 800px) {
   .analysis-kpis {
