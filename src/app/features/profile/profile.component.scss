@@ -1,0 +1,141 @@
+.profile-page {
+  width: 100%;
+  max-width: 960px;
+
+  margin: 0 auto;
+  padding: 32px;
+
+  display: grid;
+  gap: 24px;
+}
+
+.profile-header {
+  h1 {
+    margin: 4px 0 6px;
+
+    font-size: clamp(
+      1.8rem,
+      4vw,
+      2.4rem
+    );
+  }
+
+  p {
+    margin: 0;
+
+    opacity: 0.62;
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  opacity: 0.55;
+}
+
+.profile-form {
+  display: grid;
+  gap: 18px;
+}
+
+.profile-card,
+.status-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+}
+
+.profile-card {
+  display: grid;
+  gap: 16px;
+
+  h2 {
+    margin: 0 0 4px;
+
+    font-size: 1.1rem;
+  }
+}
+
+.profile-card textarea {
+  resize: vertical;
+
+  min-height: 110px;
+}
+
+.profile-card input:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  ion-button {
+    margin: 0;
+  }
+}
+
+.status-card {
+  text-align: center;
+
+  opacity: 0.7;
+}
+
+.message {
+  margin: 0;
+
+  padding: 13px 15px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(127, 127, 127, 0.06);
+}
+
+.message.error {
+  color:
+    var(--ion-color-danger);
+}
+
+.message.success {
+  color:
+    var(--ion-color-success);
+}
+
+@media (max-width: 800px) {
+  .profile-page {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-card {
+    padding: 18px;
+  }
+
+  .form-actions {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    ion-button {
+      width: 100%;
+    }
+  }
+}

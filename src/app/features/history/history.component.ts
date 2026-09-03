@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import {
+  AlertController,
   IonContent,
   IonHeader,
   IonTitle,
@@ -80,8 +81,8 @@ type SortOption =
 export class HistoryComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly accountService = inject(AccountService);
-  private readonly transactionService =
-    inject(TransactionService);
+  private readonly transactionService = inject(TransactionService);
+  private readonly alertController = inject(AlertController);
   private readonly router = inject(Router);
 
   readonly accounts = signal<Account[]>([]);
@@ -732,67 +733,7 @@ if (firstCurrency) {
 
  
 
-private async deleteTransaction(
-  transaction: Transaction,
-): Promise<void> {
-  const user =
-    this.authService.currentUser;
 
-  if (!user) {
-    this.errorMessage.set(
-      'No se encontró una sesión activa.',
-    );
-
-    return;
-  }
-
-  if (
-    this.deletingTransactionId() !== null
-  ) {
-    return;
-  }
-
-  const uid = user.uid;
-
-  this.deletingTransactionId.set(
-    transaction.id,
-  );
-
-  this.errorMessage.set('');
-
-  try {
-    await this.transactionService
-      .deleteTransaction(
-        uid,
-        transaction.type,
-        transaction.id,
-      );
-
-    this.transactions.update(
-      (transactions) =>
-        transactions.filter(
-          (item) =>
-            !(
-              item.id === transaction.id &&
-              item.type === transaction.type
-            ),
-        ),
-    );
-
-    
-  } catch (error) {
-    console.error(
-      'Transaction deletion error:',
-      error,
-    );
-
-    this.errorMessage.set(
-      'No se pudo eliminar el movimiento.',
-    );
-  } finally {
-    this.deletingTransactionId.set(null);
-  }
-}
 
 editTransaction(
   transaction: Transaction,
@@ -828,13 +769,30 @@ async confirmDeleteTransaction(
     return;
   }
 
-  const confirmed =
-    window.confirm(
-      '¿Seguro que deseas eliminar este movimiento?\n\n' +
-      'Esta acción modificará el saldo de la cuenta.',
-    );
+  const alert =
+    await this.alertController.create({
+      header: 'Eliminar movimiento',
+      message:
+        '¿Seguro que deseas eliminar este movimiento? ' +
+        'Esta acción modificará el saldo de la cuenta.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+        },
+      ],
+    });
 
-  if (!confirmed) {
+  await alert.present();
+
+  const result =
+    await alert.onDidDismiss();
+
+  if (result.role !== 'destructive') {
     return;
   }
 
@@ -848,6 +806,8 @@ async confirmDeleteTransaction(
 
     return;
   }
+
+  this.errorMessage.set('');
 
   this.deletingTransactionId.set(
     transaction.id,

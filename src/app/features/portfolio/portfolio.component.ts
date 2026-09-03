@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import {
+  AlertController,
   IonContent,
   IonHeader,
   IonTitle,
@@ -55,6 +56,9 @@ export class PortfolioComponent implements OnInit {
 
   private readonly transactionService =
     inject(TransactionService);
+
+  private readonly alertController =
+  inject(AlertController);  
 
   readonly accounts =
     signal<Account[]>([]);
@@ -339,15 +343,32 @@ readonly archivingAccountId =
     return;
   }
 
-  const confirmed =
-    window.confirm(
-      `¿Archivar la cuenta "${account.name}"?\n\n` +
+  const alert =
+  await this.alertController.create({
+    header: 'Archivar cuenta',
+    message:
+      `¿Deseas archivar "${account.name}"? ` +
       'Sus movimientos históricos se conservarán.',
-    );
+    buttons: [
+      {
+        text: 'Cancelar',
+        role: 'cancel',
+      },
+      {
+        text: 'Archivar',
+        role: 'destructive',
+      },
+    ],
+  });
 
-  if (!confirmed) {
-    return;
-  }
+await alert.present();
+
+const result =
+  await alert.onDidDismiss();
+
+if (result.role !== 'destructive') {
+  return;
+}
 
   this.archivingAccountId.set(
     account.id,

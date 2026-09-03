@@ -9,7 +9,9 @@ import {
   RouterLink,
 } from '@angular/router';
 
+
 import {
+  AlertController,
   IonContent,
   IonHeader,
   IonTitle,
@@ -44,6 +46,9 @@ export class SettingsComponent {
 
   private readonly router =
     inject(Router);
+  
+  private readonly alertController =
+  inject(AlertController);  
 
   readonly themeService =
     inject(ThemeService);
@@ -67,14 +72,31 @@ export class SettingsComponent {
       return;
     }
 
-    const confirmed =
-      window.confirm(
-        '¿Seguro que deseas cerrar sesión?',
-      );
+    const alert =
+  await this.alertController.create({
+    header: 'Cerrar sesión',
+    message:
+      '¿Seguro que deseas cerrar tu sesión en KenFinance?',
+    buttons: [
+      {
+        text: 'Cancelar',
+        role: 'cancel',
+      },
+      {
+        text: 'Cerrar sesión',
+        role: 'destructive',
+      },
+    ],
+  });
 
-    if (!confirmed) {
-      return;
-    }
+await alert.present();
+
+const result =
+  await alert.onDidDismiss();
+
+if (result.role !== 'destructive') {
+  return;
+}
 
     this.errorMessage.set('');
     this.isLoggingOut.set(true);
