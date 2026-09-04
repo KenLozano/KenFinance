@@ -2,19 +2,168 @@
 // https://ionicframework.com/docs/theming/
 
 :root {
-  --kf-primary: #1faf7a;
-  --kf-primary-dark: #16845e;
-  --kf-accent: #83e6be;
+  /* =========================
+   * KenFinance - Brand
+   * ========================= */
+  --kf-primary: #1f9d6d;
+  --kf-primary-dark: #187a54;
+  --kf-primary-light: #7be0b3;
+  --kf-accent: #b7f2d9;
 
-  --kf-surface: #f5f8f7;
-  --kf-surface-alt: #eaf1ee;
-
+  /* =========================
+   * Semantic colors
+   * ========================= */
   --kf-income: #22c55e;
-  --kf-expense: #ef476f;
-  --kf-warning: #f2b84b;
+  --kf-expense: #ef4444;
+  --kf-warning: #f59e0b;
+  --kf-info: #38bdf8;
+
+  /* =========================
+   * Surfaces
+   * ========================= */
+  --kf-background: #f4f8f6;
+  --kf-surface: #ffffff;
+  --kf-surface-alt: #edf5f1;
+  --kf-border: rgba(20, 46, 36, 0.12);
+
+  /* =========================
+   * Text
+   * ========================= */
+  --kf-text: #102019;
+  --kf-text-muted: #61756c;
+
+  /* =========================
+   * Ionic mapped colors
+   * ========================= */
+  --ion-color-primary: var(--kf-primary);
+  --ion-color-primary-rgb: 31, 157, 109;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #1b8a60;
+  --ion-color-primary-tint: #35aa7a;
+
+  --ion-color-success: var(--kf-income);
+  --ion-color-success-rgb: 34, 197, 94;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #1eae53;
+  --ion-color-success-tint: #38cb68;
+
+  --ion-color-danger: var(--kf-expense);
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d33c3c;
+  --ion-color-danger-tint: #f15656;
+
+  --ion-color-warning: var(--kf-warning);
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #111111;
+  --ion-color-warning-contrast-rgb: 17, 17, 17;
+  --ion-color-warning-shade: #d88b0a;
+  --ion-color-warning-tint: #f6a624;
+
+  --ion-color-medium: var(--kf-text-muted);
+  --ion-color-medium-rgb: 97, 117, 108;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #55675f;
+  --ion-color-medium-tint: #71827a;
+
+  /* =========================
+   * Global Ionic surfaces
+   * ========================= */
+  --ion-background-color: var(--kf-background);
+  --ion-background-color-rgb: 244, 248, 246;
+
+  --ion-text-color: var(--kf-text);
+  --ion-text-color-rgb: 16, 32, 25;
+
+  --ion-border-color: var(--kf-border);
+
+  --ion-toolbar-background: var(--kf-surface);
+  --ion-toolbar-color: var(--kf-text);
+
+  --ion-tab-bar-background: var(--kf-surface);
+  --ion-tab-bar-color: var(--kf-text-muted);
+  --ion-tab-bar-color-selected: var(--kf-primary);
+
+  --ion-item-background: var(--kf-surface);
+  --ion-card-background: var(--kf-surface);
 }
 
+/* =========================
+ * KenFinance - Dark theme
+ * ========================= */
 .ion-palette-dark {
-  --kf-surface: #0b1110;
-  --kf-surface-alt: #121a18;
+  --kf-primary: #2cc787;
+  --kf-primary-dark: #1f9d6d;
+  --kf-primary-light: #8ce8bd;
+  --kf-accent: #14372a;
+
+  --kf-income: #3ddc84;
+  --kf-expense: #ff5d73;
+  --kf-warning: #f6c453;
+  --kf-info: #60c7f8;
+
+  --kf-background: #07110d;
+  --kf-surface: #0d1713;
+  --kf-surface-alt: #13201b;
+  --kf-border: rgba(190, 224, 209, 0.12);
+
+  --kf-text: #edf7f1;
+  --kf-text-muted: #9db2a8;
+
+  --ion-color-primary: var(--kf-primary);
+  --ion-color-primary-rgb: 44, 199, 135;
+  --ion-color-primary-contrast: #07110d;
+  --ion-color-primary-contrast-rgb: 7, 17, 13;
+  --ion-color-primary-shade: #27af77;
+  --ion-color-primary-tint: #41cc93;
+
+  --ion-color-success: var(--kf-income);
+  --ion-color-success-rgb: 61, 220, 132;
+  --ion-color-success-contrast: #07110d;
+  --ion-color-success-contrast-rgb: 7, 17, 13;
+  --ion-color-success-shade: #36c276;
+  --ion-color-success-tint: #50e092;
+
+  --ion-color-danger: var(--kf-expense);
+  --ion-color-danger-rgb: 255, 93, 115;
+  --ion-color-danger-contrast: #07110d;
+  --ion-color-danger-contrast-rgb: 7, 17, 13;
+  --ion-color-danger-shade: #e05265;
+  --ion-color-danger-tint: #ff6d83;
+
+  --ion-color-warning: var(--kf-warning);
+  --ion-color-warning-rgb: 246, 196, 83;
+  --ion-color-warning-contrast: #111111;
+  --ion-color-warning-contrast-rgb: 17, 17, 17;
+  --ion-color-warning-shade: #d8ac49;
+  --ion-color-warning-tint: #f7ca64;
+
+  --ion-color-medium: var(--kf-text-muted);
+  --ion-color-medium-rgb: 157, 178, 168;
+  --ion-color-medium-contrast: #07110d;
+  --ion-color-medium-contrast-rgb: 7, 17, 13;
+  --ion-color-medium-shade: #8a9d94;
+  --ion-color-medium-tint: #a7bcaf;
+
+  --ion-background-color: var(--kf-background);
+  --ion-background-color-rgb: 7, 17, 13;
+
+  --ion-text-color: var(--kf-text);
+  --ion-text-color-rgb: 237, 247, 241;
+
+  --ion-border-color: var(--kf-border);
+
+  --ion-toolbar-background: var(--kf-surface);
+  --ion-toolbar-color: var(--kf-text);
+
+  --ion-tab-bar-background: var(--kf-surface);
+  --ion-tab-bar-color: var(--kf-text-muted);
+  --ion-tab-bar-color-selected: var(--kf-primary);
+
+  --ion-item-background: var(--kf-surface);
+  --ion-card-background: var(--kf-surface);
 }

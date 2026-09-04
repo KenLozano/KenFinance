@@ -14,6 +14,7 @@ import {
 import {
   IonButton,
   IonContent,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -38,6 +39,7 @@ import { AuthService } from '../../../core/auth/auth';
     IonItem,
     IonLabel,
     IonSpinner,
+    IonIcon,
   ],
 })
 export class LoginComponent {

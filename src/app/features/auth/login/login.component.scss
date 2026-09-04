@@ -315,6 +315,65 @@ form {
 @media (max-width: 900px) {
   .login-page {
     grid-template-columns: 1fr;
+    .login-showcase {
+  min-height: auto;
+  padding: 18px 20px;
+
+  border-right: 0;
+  border-bottom:
+    1px solid
+    rgba(127, 127, 127, 0.14);
+}
+
+.showcase-content {
+  margin: 18px 0 0;
+
+  .eyebrow {
+    display: none;
+  }
+
+  h1 {
+    margin: 0;
+
+    font-size: 1.45rem;
+    line-height: 1.2;
+
+    letter-spacing: -0.02em;
+  }
+
+  > p {
+    display: none;
+  }
+}
+
+.feature-list,
+.showcase-note {
+  display: none;
+}
+
+.login-panel {
+  min-height: auto;
+
+  padding: 26px 20px 40px;
+}
+
+.login-header {
+  margin-bottom: 20px;
+
+  .eyebrow {
+    display: none;
+  }
+
+  h2 {
+    margin: 0 0 6px;
+
+    font-size: 1.6rem;
+  }
+
+  p {
+    display: none;
+  }
+}
   }
 
   .login-showcase {
@@ -361,23 +420,24 @@ form {
 }
 
 @media (max-width: 480px) {
-  .login-showcase {
-    padding: 20px;
-  }
+  .brand {
+    gap: 10px;
 
-  .showcase-content {
-    margin: 26px 0 0;
-  }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
 
-  .login-panel {
-    padding:
-      28px 18px
-      calc(28px + env(safe-area-inset-bottom));
-  }
+      border-radius: 10px;
+    }
 
-  .login-header {
-    h2 {
-      font-size: 1.7rem;
+    strong {
+      font-size: 0.95rem;
+    }
+
+    span {
+      font-size: 0.7rem;
     }
   }
+}  .login-card ion-button ion-icon[name='logo-google'] {
+  color: #4285f4;
 }
