@@ -1,0 +1,94 @@
+@if (open) {
+
+  <div
+    class="quick-menu-backdrop"
+    (click)="close()"
+  ></div>
+
+  <section
+    class="quick-menu"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Nuevo movimiento"
+  >
+
+    <header>
+      <div>
+        <span class="eyebrow">
+          MOVIMIENTO
+        </span>
+
+        <h2>¿Qué quieres registrar?</h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Cerrar"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="quick-actions">
+
+      <a
+        routerLink="/transactions/income"
+        class="quick-action income"
+        (click)="close()"
+      >
+        <span class="action-icon">
+          +
+        </span>
+
+        <div>
+          <strong>Ingreso</strong>
+
+          <small>
+            Registrar dinero recibido
+          </small>
+        </div>
+      </a>
+
+      <a
+        routerLink="/transactions/expense"
+        class="quick-action expense"
+        (click)="close()"
+      >
+        <span class="action-icon">
+          −
+        </span>
+
+        <div>
+          <strong>Gasto</strong>
+
+          <small>
+            Registrar una salida de dinero
+          </small>
+        </div>
+      </a>
+
+      <button
+        type="button"
+        class="quick-action transfer"
+        disabled
+      >
+        <span class="action-icon">
+          ↔
+        </span>
+
+        <div>
+          <strong>Transferencia</strong>
+
+          <small>
+            Próximamente
+          </small>
+        </div>
+      </button>
+
+    </div>
+
+  </section>
+
+}

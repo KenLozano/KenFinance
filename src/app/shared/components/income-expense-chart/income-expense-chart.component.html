@@ -1,0 +1,51 @@
+<section class="comparison-card">
+
+  <header>
+    <span class="eyebrow">
+      COMPARACIÓN
+    </span>
+
+    <h2>Ingresos vs Gastos</h2>
+  </header>
+
+  <div class="comparison-item">
+
+    <div class="comparison-label">
+      <span>Ingresos</span>
+
+      <strong class="positive">
+        {{ currencySymbol }}
+        {{ income.toFixed(2) }}
+      </strong>
+    </div>
+
+    <div class="track">
+      <div
+        class="bar income"
+        [style.width.%]="incomeWidth"
+      ></div>
+    </div>
+
+  </div>
+
+  <div class="comparison-item">
+
+    <div class="comparison-label">
+      <span>Gastos</span>
+
+      <strong class="negative">
+        {{ currencySymbol }}
+        {{ expenses.toFixed(2) }}
+      </strong>
+    </div>
+
+    <div class="track">
+      <div
+        class="bar expense"
+        [style.width.%]="expenseWidth"
+      ></div>
+    </div>
+
+  </div>
+
+</section>

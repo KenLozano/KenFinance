@@ -28,12 +28,23 @@ service cloud.firestore {
     }
 
     function hasRequiredIncomeFields() {
-      return request.resource.data.keys().hasAll(['amount', 'date']);
-    }
+  return request.resource.data.keys()
+    .hasAll([
+      'amount',
+      'date',
+      'assetId'
+    ]);
+}
 
     function hasRequiredExpenseFields() {
-      return request.resource.data.keys().hasAll(['amount', 'date', 'category']);
-    }
+  return request.resource.data.keys()
+    .hasAll([
+      'amount',
+      'date',
+      'category',
+      'assetId'
+    ]);
+}
 
     function hasOnlyAllowedBudgetFields() {
       return request.resource.data.keys().hasOnly(['amount', 'updatedAt']);
@@ -72,31 +83,70 @@ service cloud.firestore {
         ));
     }
     function isValidIncomeData() {
-      return hasRequiredIncomeFields() &&
-        isValidAmount(request.resource.data.amount) &&
-        isValidDate(request.resource.data.date) &&
-        isValidOptionalNote() &&
-        isValidOptionalText('source', 40) &&
-        isValidOptionalText('account', 40) &&
-        isValidOptionalText('tags', 100) &&
-        (!('assetId' in request.resource.data) || request.resource.data.assetId is string) &&
-        (!('goalId' in request.resource.data) || request.resource.data.goalId is string) &&
-        (!('isInitialBalance' in request.resource.data) || request.resource.data.isInitialBalance is bool);
-    }
+  return hasRequiredIncomeFields() &&
+    isValidAmount(request.resource.data.amount) &&
+    isValidDate(request.resource.data.date) &&
+    isValidOptionalNote() &&
+    isValidOptionalText('source', 40) &&
+    isValidOptionalText('account', 40) &&
+    isValidOptionalText('tags', 100) &&
+
+    request.resource.data.assetId is string &&
+    request.resource.data.assetId.size() > 0 &&
+
+    (
+      !('goalId' in request.resource.data) ||
+      request.resource.data.goalId is string
+    ) &&
+
+    (
+      !('isInitialBalance' in request.resource.data) ||
+      request.resource.data.isInitialBalance is bool
+    );
+}
 
     function isValidExpenseData() {
-      return hasRequiredExpenseFields() &&
-        isValidAmount(request.resource.data.amount) &&
-        isValidDate(request.resource.data.date) &&
-        request.resource.data.category in ['green', 'yellow', 'red'] &&
-        isValidOptionalNote() &&
-        isValidOptionalText('merchant', 80) &&
-        isValidOptionalText('method', 40) &&
-        isValidOptionalText('priority', 20) &&
-        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']) &&
-        (!('assetId' in request.resource.data) || request.resource.data.assetId is string) &&
-        (!('goalId' in request.resource.data) || request.resource.data.goalId is string);
-    }
+  return hasRequiredExpenseFields() &&
+    isValidAmount(request.resource.data.amount) &&
+    isValidDate(request.resource.data.date) &&
+    request.resource.data.category in [
+      'green',
+      'yellow',
+      'red'
+    ] &&
+    isValidOptionalNote() &&
+    isValidOptionalText('merchant', 80) &&
+    isValidOptionalText('method', 40) &&
+    isValidOptionalText('priority', 20) &&
+
+    (
+      !('method' in request.resource.data) ||
+      request.resource.data.method in [
+        'efectivo',
+        'debito',
+        'credito',
+        'transferencia',
+        'billetera'
+      ]
+    ) &&
+
+    (
+      !('priority' in request.resource.data) ||
+      request.resource.data.priority in [
+        'alta',
+        'media',
+        'baja'
+      ]
+    ) &&
+
+    request.resource.data.assetId is string &&
+    request.resource.data.assetId.size() > 0 &&
+
+    (
+      !('goalId' in request.resource.data) ||
+      request.resource.data.goalId is string
+    );
+}
 
     function isValidBudgetData() {
       return hasOnlyAllowedBudgetFields() &&

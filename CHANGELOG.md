@@ -248,7 +248,7 @@ Ejemplo:
 
 | Versión | Fecha | Estado | Descripción |
 |---|---|---|---|
-| 1.0.0 | 2026-08-22 | Preparada para release | Primera versión funcional consolidada y cierre de la Fase 1. |
+| 1.0.0 | 2026-08-22 | Estable | Primera versión funcional consolidada y cierre de la Fase 1. |
 
 ---
 

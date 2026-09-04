@@ -1,0 +1,56 @@
+<ion-content [fullscreen]="true">
+  <main class="auth-page">
+    <section class="auth-card">
+      <header>
+        <h1>Recuperar contraseña</h1>
+        <p>
+          Ingresa el correo asociado a tu cuenta.
+        </p>
+      </header>
+
+      <form (ngSubmit)="sendRecovery()">
+        <ion-item>
+          <ion-label position="stacked">
+            Correo electrónico
+          </ion-label>
+
+          <ion-input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            autocomplete="email"
+            required
+          ></ion-input>
+        </ion-item>
+
+        @if (errorMessage) {
+          <p class="error-message">
+            {{ errorMessage }}
+          </p>
+        }
+
+        @if (successMessage) {
+          <p class="success-message">
+            {{ successMessage }}
+          </p>
+        }
+
+        <ion-button
+          type="submit"
+          expand="block"
+          [disabled]="isLoading"
+        >
+          @if (isLoading) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Enviar enlace
+          }
+        </ion-button>
+      </form>
+
+      <a routerLink="/login">
+        Volver al inicio de sesión
+      </a>
+    </section>
+  </main>
+</ion-content>

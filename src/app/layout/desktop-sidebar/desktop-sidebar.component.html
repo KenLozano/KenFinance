@@ -1,0 +1,95 @@
+<aside class="sidebar">
+
+  <header class="brand">
+    <div class="brand-mark">
+      K
+    </div>
+
+    <div>
+      <strong>KenFinance</strong>
+      <span>Finanzas personales</span>
+    </div>
+  </header>
+
+  <button
+    type="button"
+    class="new-transaction-button"
+    aria-label="Registrar nuevo movimiento"
+    [attr.aria-expanded]="quickMenuOpen()"
+    (click)="openQuickMenu()"
+  >
+    <ion-icon
+      name="add-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    Nuevo movimiento
+  </button>
+
+  <nav
+    class="sidebar-nav"
+    aria-label="Navegación principal"
+  >
+
+    <a
+      routerLink="/home"
+      routerLinkActive="active"
+    >
+      <ion-icon
+        name="home-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
+      Inicio
+    </a>
+
+    <a
+      routerLink="/history"
+      routerLinkActive="active"
+    >
+      <ion-icon
+        name="time-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
+      Historial
+    </a>
+
+    <a
+      routerLink="/portfolio"
+      routerLinkActive="active"
+    >
+      <ion-icon
+        name="wallet-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
+      Portafolio
+    </a>
+
+    <a
+      routerLink="/settings"
+      routerLinkActive="active"
+    >
+      <ion-icon
+        name="ellipsis-horizontal-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
+      Más
+    </a>
+
+  </nav>
+
+  <footer class="sidebar-footer">
+    <small>
+      KenFinance v2
+    </small>
+  </footer>
+
+</aside>
+
+<app-transaction-quick-menu
+  [open]="quickMenuOpen()"
+  (closed)="closeQuickMenu()"
+></app-transaction-quick-menu>

@@ -1,0 +1,72 @@
+<nav
+  class="mobile-tabs"
+  aria-label="Navegación principal"
+>
+
+  <a
+    routerLink="/home"
+    routerLinkActive="active"
+  >
+    <ion-icon
+      name="home-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <span>Inicio</span>
+  </a>
+
+  <a
+    routerLink="/history"
+    routerLinkActive="active"
+  >
+    <ion-icon
+      name="time-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <span>Historial</span>
+  </a>
+
+  <button
+    type="button"
+    class="primary-action"
+    aria-label="Nuevo movimiento"
+    [attr.aria-expanded]="quickMenuOpen()"
+    (click)="openQuickMenu()"
+  >
+    <ion-icon
+      name="add-outline"
+      aria-hidden="true"
+    ></ion-icon>
+  </button>
+
+  <a
+    routerLink="/portfolio"
+    routerLinkActive="active"
+  >
+    <ion-icon
+      name="wallet-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <span>Portafolio</span>
+  </a>
+
+  <a
+    routerLink="/settings"
+    routerLinkActive="active"
+  >
+    <ion-icon
+      name="ellipsis-horizontal-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <span>Más</span>
+  </a>
+
+</nav>
+
+<app-transaction-quick-menu
+  [open]="quickMenuOpen()"
+  (closed)="closeQuickMenu()"
+></app-transaction-quick-menu>

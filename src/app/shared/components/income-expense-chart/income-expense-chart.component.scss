@@ -1,0 +1,73 @@
+.comparison-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+
+  header {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 4px 0 0;
+      font-size: 1.15rem;
+    }
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+
+.comparison-item + .comparison-item {
+  margin-top: 22px;
+}
+
+.comparison-label {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 8px;
+}
+
+.track {
+  height: 10px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(127, 127, 127, 0.12);
+}
+
+.bar {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.bar.income {
+  background: var(--ion-color-success);
+}
+
+.bar.expense {
+  background: var(--ion-color-danger);
+}
+
+.positive {
+  color: var(--ion-color-success);
+}
+
+.negative {
+  color: var(--ion-color-danger);
+}

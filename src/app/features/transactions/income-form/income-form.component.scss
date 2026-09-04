@@ -1,0 +1,165 @@
+.transaction-page {
+  width: 100%;
+  max-width: 720px;
+
+  margin: 0 auto;
+  padding: 32px;
+
+  display: grid;
+  gap: 24px;
+}
+
+.form-header {
+  h1 {
+    margin: 4px 0 8px;
+  }
+
+  p {
+    margin: 0;
+    opacity: 0.6;
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+
+.transaction-form {
+  display: grid;
+  gap: 18px;
+}
+
+.form-card {
+  display: grid;
+  gap: 18px;
+
+  padding: 22px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 18px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+}
+
+label {
+  display: grid;
+  gap: 7px;
+
+  font-size: 0.82rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+
+  padding: 12px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.22);
+
+  border-radius: 11px;
+
+  background: transparent;
+  color: inherit;
+
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.money-input {
+  display: grid;
+
+  grid-template-columns:
+    auto minmax(0, 1fr);
+
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.22);
+
+  border-radius: 11px;
+
+  overflow: hidden;
+
+  span {
+    padding-left: 12px;
+
+    font-weight: 700;
+
+    opacity: 0.7;
+  }
+
+  input {
+    border: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+}
+
+.message {
+  margin: 0;
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+}
+
+.message.error {
+  color: var(--ion-color-danger);
+
+  background:
+    rgba(
+      var(--ion-color-danger-rgb),
+      0.08
+    );
+}
+
+.message.success {
+  color: var(--ion-color-success);
+
+  background:
+    rgba(
+      var(--ion-color-success-rgb),
+      0.08
+    );
+}
+
+.status-card {
+  padding: 30px;
+
+  text-align: center;
+
+  opacity: 0.6;
+}
+
+@media (max-width: 700px) {
+  .transaction-page {
+    padding: 20px 16px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    ion-button {
+      width: 100%;
+    }
+  }
+}

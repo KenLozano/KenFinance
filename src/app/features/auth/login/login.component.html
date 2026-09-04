@@ -1,0 +1,225 @@
+<ion-content [fullscreen]="true">
+
+  <main class="login-page">
+
+    <section class="login-showcase">
+
+      <header class="brand">
+
+        <div class="brand-mark">
+          K
+        </div>
+
+        <div>
+          <strong>KenFinance</strong>
+
+          <span>
+            Finanzas personales
+          </span>
+        </div>
+
+      </header>
+
+      <div class="showcase-content">
+
+        <span class="eyebrow">
+          CONTROL FINANCIERO PERSONAL
+        </span>
+
+        <h1>
+          Entiende tu dinero.
+          Decide mejor.
+        </h1>
+
+        <p>
+          Registra tus movimientos,
+          organiza tus cuentas y revisa
+          cómo evolucionan tus finanzas
+          desde un solo lugar.
+        </p>
+
+        <div class="feature-list">
+
+          <div>
+            <strong>
+              Cuentas
+            </strong>
+
+            <span>
+              Mantén tus saldos organizados.
+            </span>
+          </div>
+
+          <div>
+            <strong>
+              Movimientos
+            </strong>
+
+            <span>
+              Consulta ingresos y gastos.
+            </span>
+          </div>
+
+          <div>
+            <strong>
+              Análisis
+            </strong>
+
+            <span>
+              Comprende mejor tus hábitos.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <small class="showcase-note">
+        Tus finanzas, bajo tu control.
+      </small>
+
+    </section>
+
+
+    <section class="login-panel">
+
+      <div class="login-card">
+
+        <header class="login-header">
+
+          <span class="eyebrow">
+            BIENVENIDO
+          </span>
+
+          <h2>
+            Inicia sesión
+          </h2>
+
+          <p>
+            Accede a tu espacio personal
+            de KenFinance.
+          </p>
+
+        </header>
+
+        <form
+          (ngSubmit)="login()"
+        >
+
+          <ion-item
+            class="auth-field"
+            lines="none"
+          >
+
+            <ion-label
+              position="stacked"
+            >
+              Correo electrónico
+            </ion-label>
+
+            <ion-input
+              type="email"
+              name="email"
+              [(ngModel)]="email"
+              autocomplete="email"
+              placeholder="nombre@correo.com"
+              required
+            ></ion-input>
+
+          </ion-item>
+
+          <ion-item
+            class="auth-field"
+            lines="none"
+          >
+
+            <ion-label
+              position="stacked"
+            >
+              Contraseña
+            </ion-label>
+
+            <ion-input
+              type="password"
+              name="password"
+              [(ngModel)]="password"
+              autocomplete="current-password"
+              placeholder="Tu contraseña"
+              required
+            ></ion-input>
+
+          </ion-item>
+
+          @if (errorMessage()) {
+
+            <p class="error-message">
+              {{ errorMessage() }}
+            </p>
+
+          }
+
+          <ion-button
+            type="submit"
+            expand="block"
+            [disabled]="isLoading()"
+          >
+
+            @if (isLoading()) {
+
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+
+            } @else {
+
+              Iniciar sesión
+
+            }
+
+          </ion-button>
+
+        </form>
+
+        <div class="separator">
+          <span>o</span>
+        </div>
+
+        <ion-button
+  type="button"
+  expand="block"
+  fill="outline"
+  [disabled]="isLoading()"
+  (click)="loginWithGoogle()"
+>
+  <ion-icon
+    slot="start"
+    name="logo-google"
+    aria-hidden="true"
+  ></ion-icon>
+
+  Continuar con Google
+</ion-button>
+
+        <nav class="login-links">
+
+          <a routerLink="/recovery">
+            ¿Olvidaste tu contraseña?
+          </a>
+
+          <span>
+            ¿Aún no tienes cuenta?
+
+            <a routerLink="/register">
+              Crear una cuenta
+            </a>
+          </span>
+
+        </nav>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</ion-content>

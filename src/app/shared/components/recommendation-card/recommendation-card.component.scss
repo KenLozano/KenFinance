@@ -1,0 +1,66 @@
+.recommendation-card {
+  display: flex;
+
+  gap: 14px;
+
+  padding: 18px 20px;
+
+  border:
+    1px solid
+    rgba(127, 127, 127, 0.16);
+
+  border-radius: 16px;
+
+  background:
+    rgba(127, 127, 127, 0.04);
+
+  span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+
+    opacity: 0.65;
+  }
+
+  p {
+    margin: 0;
+
+    line-height: 1.45;
+  }
+}
+
+.recommendation-icon {
+  display: grid;
+
+  flex: 0 0 32px;
+
+  width: 32px;
+  height: 32px;
+
+  place-items: center;
+
+  border-radius: 10px;
+
+  background:
+    rgba(127, 127, 127, 0.12);
+
+  font-weight: 800;
+}
+
+.recommendation-card.warning {
+  border-color:
+    rgba(245, 158, 11, 0.35);
+}
+
+.recommendation-card.danger {
+  border-color:
+    rgba(239, 68, 68, 0.4);
+}
+
+.recommendation-card.success {
+  border-color:
+    rgba(34, 197, 94, 0.35);
+}

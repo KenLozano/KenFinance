@@ -1,0 +1,67 @@
+<section class="distribution-card">
+
+  <header>
+    <span class="eyebrow">
+      CATEGORÍAS
+    </span>
+
+    <h2>Distribución de gastos</h2>
+  </header>
+
+  @if (items.length > 0) {
+
+    <div class="distribution-list">
+
+      @for (
+        item of items;
+        track item.category
+      ) {
+
+        <div class="distribution-item">
+
+          <div class="distribution-label">
+
+            <span>
+              {{ item.category }}
+            </span>
+
+            <strong>
+              {{ currencySymbol }}
+              {{ item.amount.toFixed(2) }}
+            </strong>
+
+          </div>
+
+          <div class="track">
+            <div
+              class="bar"
+              [style.width.%]="
+                getPercentage(item.amount)
+              "
+            ></div>
+          </div>
+
+          <small>
+            {{
+              getPercentage(
+                item.amount
+              ).toFixed(1)
+            }}%
+          </small>
+
+        </div>
+
+      }
+
+    </div>
+
+  } @else {
+
+    <p class="empty-message">
+      No hay gastos para analizar
+      con los filtros actuales.
+    </p>
+
+  }
+
+</section>

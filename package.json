@@ -1,16 +1,53 @@
 {
-    "name": "kenfinance",
-    "version": "1.0.0",
-    "description": "KenFinance — Tu app personal de finanzas",
-    "private": true,
-    "scripts": {
-        "dev": "npx -y serve .",
-        "lint": "npx -y eslint js/"
-    },
-    "keywords": [
-        "finanzas",
-        "pwa",
-        "firebase"
-    ],
-    "license": "MIT"
+  "name": "kenfinance-v2",
+  "version": "0.0.1",
+  "author": "Ionic Framework",
+  "homepage": "https://ionicframework.com/",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "20.3.29",
+    "@angular/compiler": "20.3.29",
+    "@angular/core": "20.3.29",
+    "@angular/fire": "^20.0.1",
+    "@angular/forms": "20.3.29",
+    "@angular/platform-browser": "20.3.29",
+    "@angular/platform-browser-dynamic": "^20.3.29",
+    "@angular/router": "20.3.29",
+    "@angular/service-worker": "20.3.29",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.5.0",
+    "@capacitor/haptics": "8.0.2",
+    "@capacitor/keyboard": "8.0.5",
+    "@capacitor/status-bar": "8.0.3",
+    "@ionic/angular": "^9.0.0",
+    "ionicons": "^8.1.0",
+    "jspdf": "^4.2.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular/build": "20.3.34",
+    "@angular/cli": "20.3.34",
+    "@angular/compiler-cli": "20.3.29",
+    "@angular/language-service": "20.3.29",
+    "@capacitor/cli": "^8.5.0",
+    "@ionic/angular-toolkit": "^13.0.0",
+    "angular-eslint": "^20.0.0",
+    "eslint": "^9.16.0",
+    "jsdom": "^26.0.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.61.0",
+    "vitest": "^3.2.7"
+  },
+  "description": "An Ionic project"
 }

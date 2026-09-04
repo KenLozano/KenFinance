@@ -1,0 +1,22 @@
+.app-layout {
+  min-height: 100dvh;
+}
+
+.app-main {
+  min-width: 0;
+  min-height: 100dvh;
+
+  margin-left: 240px;
+}
+
+@media (max-width: 900px) {
+  .app-main {
+    margin-left: 0;
+
+    padding-bottom:
+      calc(
+        74px +
+        env(safe-area-inset-bottom)
+      );
+  }
+}
