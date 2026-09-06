@@ -623,12 +623,23 @@ Estas funcionalidades forman parte de futuras etapas del proyecto.
 
 La documentación será actualizada junto con cada versión estable del proyecto.
 
+<<<<<<< HEAD
 ---
 
 ## 🗺️ Próximas versiones
 
 Tras el cierre de la Fase 2, el desarrollo continuará mediante versiones incrementales.
 
+=======
+La documentación será actualizada junto con cada versión estable del proyecto.
+
+---
+
+## 🗺️ Próximas versiones
+
+Tras el cierre de la Fase 2, el desarrollo continuará mediante versiones incrementales.
+
+>>>>>>> origin/main
 Entre las mejoras previstas se encuentran:
 
 - correcciones de UI/UX;
