@@ -9,14 +9,243 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [Unreleased]
 
 ### Planned
-- Rediseño completo de la interfaz para desktop y móvil.
-- Migración progresiva del frontend hacia una arquitectura basada en TypeScript, Angular e Ionic.
-- Nueva navegación por páginas: Inicio, Historial, Portafolio y Más.
-- Vista de análisis gráfico separada del historial.
-- Nuevo gráfico temporal de flujo financiero.
-- Mejoras futuras de Portafolio, transferencias, notificaciones y recomendaciones.
+- Corrección del espacio vertical excesivo al final de determinadas vistas.
+- Mejoras del header en escritorio.
+- Accesos rápidos al perfil.
+- Sistema de notificaciones.
+- Evolución del módulo Portafolio.
+- Transferencias entre cuentas propias.
+- Categorías financieras más avanzadas.
+- Metas financieras.
+- Calendario financiero.
+- Suscripciones.
+- Gestión de deudas.
+- Inversiones.
+- Multimoneda avanzada y consolidación.
+- Análisis financiero avanzado.
+- Automatizaciones y recomendaciones.
 
-> Estos elementos pertenecen a fases posteriores y todavía no forman parte de KenFinance v1.0.
+> Estos elementos pertenecen a versiones posteriores y no forman parte de KenFinance v2.0.0.
+
+---
+
+## [2.0.0] - 2026-09-05
+
+Segunda versión estable de KenFinance y cierre de la **Fase 2 — Rediseño y modernización**.
+
+Esta versión representa la migración completa del frontend de KenFinance desde una arquitectura basada en HTML, CSS y JavaScript modular hacia **Angular 20 + Ionic 9 + TypeScript**, manteniendo Firebase Authentication y Cloud Firestore como servicios principales de backend.
+
+### Added
+
+#### Arquitectura y frontend
+- Migración del frontend a **Angular 20.3.29**.
+- Integración de **Ionic 9**.
+- Adopción de **TypeScript 5.9.3**.
+- Uso de **RxJS 7.8.x**.
+- Integración de **AngularFire 20.0.1**.
+- Incorporación de **Angular Router** para navegación por páginas.
+- Organización modular del proyecto mediante `core/` y `features/`.
+- Incorporación de una arquitectura preparada para mantenimiento y crecimiento incremental.
+- Integración de **Capacitor 8** y plugins relacionados con App, Haptics, Keyboard y Status Bar.
+- Integración de **Ionicons 8.1.x**.
+
+#### Navegación y estructura funcional
+- Nueva navegación por páginas.
+- Home independiente.
+- Historial independiente.
+- Portafolio independiente.
+- Flujo de autenticación separado del resto de funcionalidades.
+- Protección de rutas para impedir acceso a vistas privadas sin sesión válida.
+- Persistencia de sesión mediante Firebase Authentication.
+
+#### Home
+- Rediseño completo del dashboard principal.
+- Balance del período como elemento principal.
+- Visualización de ingresos.
+- Visualización de gastos.
+- Visualización de patrimonio o saldo total.
+- Acceso a movimientos recientes.
+- Acceso rápido al registro de movimientos.
+- Integración de información proveniente de cuentas, movimientos e indicadores.
+
+#### Historial
+- Separación del historial respecto al Home.
+- Consulta independiente de movimientos financieros.
+- Conservación de filtros y análisis de movimientos dentro de una vista dedicada.
+
+#### Portafolio
+- Creación de un módulo independiente para la gestión de cuentas.
+- Visualización organizada de cuentas financieras.
+- Integración de saldos asociados a cuentas.
+- Preparación de la arquitectura para futuras transferencias internas y ampliación del Portafolio.
+
+#### Perfil y configuración
+- Conservación y adaptación del perfil de usuario dentro de la nueva arquitectura.
+- Integración del perfil con la navegación v2.
+- Preparación de información de usuario para personalización de reportes.
+
+#### Plan financiero
+- Conservación del módulo de planificación financiera dentro de la nueva interfaz.
+- Integración del plan con el flujo de navegación de la v2.
+
+#### Reportes
+- Conservación de exportación a PDF.
+- Conservación de exportación a Excel.
+- Uso de **jsPDF 4.2.1**.
+- Uso de **SheetJS / XLSX 0.20.3**.
+- Adaptación de reportes al nuevo frontend.
+- Uso de información de perfil y movimientos dentro de los reportes.
+
+#### PWA
+- Integración de **Angular Service Worker 20.3.29**.
+- Conservación de capacidades PWA.
+- Instalación desde navegadores compatibles.
+- Preparación del proyecto para experiencia web instalable.
+
+#### Desarrollo y calidad
+- Incorporación de **Angular CLI 20.3.34**.
+- Configuración de **ESLint 9.16** y Angular ESLint.
+- Incorporación de **Vitest 3.2.7**.
+- Incorporación de **jsdom 26**.
+- Scripts npm para:
+  - desarrollo;
+  - build;
+  - watch;
+  - test;
+  - lint.
+- Validación de build de producción mediante `npm run build`.
+- Integración de flujo de trabajo mediante ramas, Pull Request, Preview y Production.
+
+### Changed
+
+#### Arquitectura
+- El frontend dejó de utilizar la arquitectura principal basada en:
+  - `index.html`;
+  - `js/app.js`;
+  - `js/state.js`;
+  - módulos JavaScript manuales.
+- La lógica pasó a organizarse mediante componentes, páginas, servicios y routing propios de Angular.
+- La aplicación dejó de depender de una vista principal única y pasó a utilizar navegación modular.
+- El Historial dejó de estar integrado dentro del Home y pasó a ser una sección independiente.
+- La gestión de cuentas pasó a presentarse como **Portafolio**.
+- La autenticación pasó a integrarse mediante servicios Angular y rutas protegidas.
+- El proyecto dejó de utilizar `npm run dev` como comando principal de desarrollo.
+- El script oficial de desarrollo pasó a ser:
+  - `npm start` → `ng serve`.
+- El proceso de producción pasó a requerir compilación mediante:
+  - `npm run build`;
+  - salida generada en `www/`.
+
+#### UI / UX
+- Rediseño completo de la interfaz.
+- Nueva experiencia responsive.
+- Adaptación diferenciada para desktop y móvil.
+- Navegación inferior optimizada para móvil.
+- Mayor separación visual y funcional entre módulos.
+- Renovación de Home, Historial y Portafolio.
+
+#### Deployment
+- `main` quedó establecida como rama de producción.
+- Vercel quedó conectado al flujo de producción de v2.0.
+- Se utilizó `v2-development` como rama de desarrollo durante el cierre.
+- Se incorporó flujo de Pull Request para integración controlada.
+- Se utilizaron Preview Deployments para validación previa.
+- Se descartó reutilizar automáticamente el `vercel.json` heredado de v1.0.
+- La configuración de deployment pasó a documentarse específicamente para Angular/Ionic.
+
+#### Documentación
+- README actualizado para reflejar v2.0.
+- Guía Técnica actualizada para Angular/Ionic/TypeScript.
+- Deployment actualizado para el flujo real de v2.0.
+- `package.json` actualizado con:
+  - versión `2.0.0`;
+  - autor `Ken Lozano`;
+  - homepage del repositorio;
+  - descripción real del proyecto.
+
+### Fixed
+
+- Corregidos problemas encontrados durante la migración inicial de rutas.
+- Corregida una estructura duplicada `app/app` generada durante la creación del proyecto.
+- Corregidos problemas iniciales de carga de autenticación.
+- Corregida pantalla en blanco observada durante el arranque de Auth.
+- Corregidos errores relacionados con la creación inicial de módulos y rutas.
+- Corregida la configuración inicial incompleta de AngularFire para incluir Firestore.
+- Corregidos conflictos de integración entre `main` y `v2-development`.
+- Resuelto el conflicto de merge relacionado con `vercel.json`.
+- Validado el comportamiento de login, logout, navegación, rutas protegidas, Home, Historial, Portafolio, Perfil, Plan y Reportes en producción.
+
+### Removed
+
+- Eliminada la arquitectura frontend principal de v1.0 basada en JavaScript Vanilla como base activa de la aplicación.
+- Eliminado `vercel.json` heredado de v1.0 de la arquitectura actual.
+- Retirada la dependencia operativa del Service Worker manual de v1.0.
+- Retirada la navegación principal concentrada en una única vista.
+- Retiradas configuraciones de despliegue históricas no confirmadas como parte de v2.0.
+
+### Security
+
+- Firebase Authentication continúa como mecanismo principal de identidad.
+- Se incorporó protección de rutas en Angular.
+- Firestore Security Rules continúan siendo la capa principal de autorización de datos.
+- Se mantuvo el principio de aislamiento de datos mediante el `uid` del usuario autenticado.
+- Se validó que el usuario no pueda recuperar acceso funcional a rutas protegidas tras cerrar sesión simplemente usando la navegación "Atrás".
+- Se revisó el comportamiento general de autenticación y acceso durante QA.
+- Se mantuvo la recomendación de no almacenar secretos, contraseñas, tokens privados ni credenciales administrativas en el repositorio.
+
+### QA
+
+Antes del release se realizaron pruebas en:
+
+```text
+Local
+Vercel Preview
+Vercel Production
+```
+
+Se validaron:
+
+- build de producción;
+- carga inicial;
+- login;
+- logout;
+- persistencia de sesión;
+- rutas protegidas;
+- Home;
+- Historial;
+- Portafolio;
+- Perfil;
+- Plan;
+- Reportes;
+- comportamiento responsive;
+- producción en Vercel;
+- comportamiento general de la PWA.
+
+Resultado:
+
+```text
+GO con observación
+```
+
+No se identificaron hallazgos **P0** o **P1** que bloquearan el release.
+
+### Known limitations
+
+- Existe un espacio vertical excesivo después del contenido en determinadas vistas.
+  - Severidad QA: `P2`.
+  - Impacto funcional: ninguno.
+  - No bloquea v2.0.0.
+- El build puede mostrar warnings no bloqueantes relacionados con:
+  - budgets SCSS;
+  - dependencias CommonJS utilizadas indirectamente por librerías de reportes.
+- No existe todavía un movimiento específico para transferencias entre cuentas propias.
+- No existe todavía un sistema completo de notificaciones financieras.
+- No existe todavía un módulo completo de metas financieras avanzadas.
+- No existe todavía una gestión completa de deudas.
+- No existe todavía un módulo de inversiones.
+- No existe todavía un sistema completo de automatizaciones financieras.
+- No existe todavía un sistema completo de recomendaciones financieras.
+- KenFinance v2.0 no debe considerarse una aplicación completamente offline-first.
 
 ---
 
@@ -240,6 +469,8 @@ Ejemplo:
 1.1.0
 1.1.1
 2.0.0
+2.0.1
+2.1.0
 ```
 
 ---
@@ -248,8 +479,9 @@ Ejemplo:
 
 | Versión | Fecha | Estado | Descripción |
 |---|---|---|---|
+| 2.0.0 | 2026-09-05 | Estable | Migración a Angular + Ionic + TypeScript y cierre de la Fase 2. |
 | 1.0.0 | 2026-08-22 | Estable | Primera versión funcional consolidada y cierre de la Fase 1. |
 
 ---
 
-**KenFinance v1.0 — Fase 1**
+**KenFinance v2.0 — Fase 2 finalizada**
