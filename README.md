@@ -619,6 +619,7 @@ Estas funcionalidades forman parte de futuras etapas del proyecto.
 | [GUIA_TECNICA_COMPLETA.md](GUIA_TECNICA_COMPLETA.md) | Arquitectura y funcionamiento técnico |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Configuración y proceso de despliegue |
 | [CHANGELOG.md](CHANGELOG.md) | Historial de cambios y versiones |
+| [INFORME_QA_V2.0.md](INFORME_QA_V2.0.md) | Resultado de pruebas, hallazgos y decisión GO/NO-GO de v2.0 |
 
 La documentación será actualizada junto con cada versión estable del proyecto.
 

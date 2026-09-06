@@ -1,13 +1,14 @@
- # 🚀 Deployment — KenFinance v1.0
+# 🚀 Deployment — KenFinance v2.0
 
-> Guía de despliegue correspondiente al estado final de **KenFinance v1.0 / Fase 1**.
+> Guía de despliegue correspondiente al estado estable de **KenFinance v2.0 / Fase 2**.
 
-**Versión:** 1.0.0  
-**Frontend:** HTML + CSS + JavaScript ES Modules  
-**Backend:** Firebase Authentication + Cloud Firestore  
+**Versión:** 2.0.0  
+**Frontend:** Angular 20.3.29 + Ionic 9 + TypeScript 5.9.3  
+**Backend / BaaS:** Firebase Authentication + Cloud Firestore  
+**PWA:** Angular Service Worker  
 **Hosting principal:** Vercel  
-**Hosting alternativo configurado:** Firebase Hosting  
-**PWA:** Sí  
+**Rama de producción:** `main`  
+**Estado de release:** GO con observación no bloqueante  
 
 ---
 
@@ -15,66 +16,88 @@
 
 1. [Objetivo](#1-objetivo)
 2. [Arquitectura de despliegue](#2-arquitectura-de-despliegue)
-3. [Archivos de configuración involucrados](#3-archivos-de-configuración-involucrados)
+3. [Flujo de release](#3-flujo-de-release)
 4. [Requisitos previos](#4-requisitos-previos)
-5. [Verificación local antes del despliegue](#5-verificación-local-antes-del-despliegue)
-6. [Despliegue principal en Vercel](#6-despliegue-principal-en-vercel)
-7. [Configuración actual de Vercel](#7-configuración-actual-de-vercel)
-8. [Firebase utilizado por producción](#8-firebase-utilizado-por-producción)
-9. [Firebase Authentication](#9-firebase-authentication)
-10. [Cloud Firestore](#10-cloud-firestore)
-11. [Firestore Rules e índices](#11-firestore-rules-e-índices)
-12. [Firebase Hosting como alternativa](#12-firebase-hosting-como-alternativa)
-13. [PWA en producción](#13-pwa-en-producción)
-14. [Service Worker y caché](#14-service-worker-y-caché)
-15. [Manifest](#15-manifest)
-16. [Encabezados de seguridad](#16-encabezados-de-seguridad)
-17. [Actualización de producción](#17-actualización-de-producción)
-18. [Rollback](#18-rollback)
-19. [Checklist posterior al despliegue](#19-checklist-posterior-al-despliegue)
-20. [Problemas comunes](#20-problemas-comunes)
-21. [Netlify y `_redirects`](#21-netlify-y-_redirects)
-22. [Estado del despliegue v1.0](#22-estado-del-despliegue-v10)
+5. [Preparación local](#5-preparación-local)
+6. [Build de producción](#6-build-de-producción)
+7. [Despliegue principal en Vercel](#7-despliegue-principal-en-vercel)
+8. [Producción y rama `main`](#8-producción-y-rama-main)
+9. [Preview Deployments](#9-preview-deployments)
+10. [Routing SPA](#10-routing-spa)
+11. [Firebase utilizado por producción](#11-firebase-utilizado-por-producción)
+12. [Firebase Authentication](#12-firebase-authentication)
+13. [Cloud Firestore](#13-cloud-firestore)
+14. [Firestore Rules e índices](#14-firestore-rules-e-índices)
+15. [PWA en producción](#15-pwa-en-producción)
+16. [Service Worker y actualización](#16-service-worker-y-actualización)
+17. [Manifest e instalación](#17-manifest-e-instalación)
+18. [Seguridad de despliegue](#18-seguridad-de-despliegue)
+19. [Actualización de producción](#19-actualización-de-producción)
+20. [Rollback](#20-rollback)
+21. [Checklist posterior al despliegue](#21-checklist-posterior-al-despliegue)
+22. [Problemas comunes](#22-problemas-comunes)
+23. [Warnings conocidos](#23-warnings-conocidos)
+24. [Estado del despliegue v2.0](#24-estado-del-despliegue-v20)
+25. [Alcance de esta documentación](#25-alcance-de-esta-documentación)
 
 ---
 
 # 1. Objetivo
 
-Este documento explica cómo ejecutar y desplegar **KenFinance v1.0** utilizando la configuración existente al cierre de la Fase 1.
+Este documento describe el proceso de despliegue de **KenFinance v2.0** y sustituye la guía correspondiente a v1.0 como referencia principal.
 
-La guía documenta únicamente la arquitectura actual:
+La arquitectura de producción actual puede resumirse así:
 
 ```text
-GitHub
-   │
-   ▼
-Vercel
-   │
-   ▼
-KenFinance Web / PWA
-   │
-   ├── Firebase Authentication
-   └── Cloud Firestore
+Desarrollo local
+      │
+      ▼
+Rama de desarrollo
+      │
+      ▼
+Pull Request
+      │
+      ▼
+Vercel Preview
+      │
+      ▼
+QA / validación
+      │
+      ▼
+Merge a main
+      │
+      ▼
+Vercel Production
+      │
+      ▼
+KenFinance v2.0
+      │
+      ├── Firebase Authentication
+      └── Cloud Firestore
 ```
-
-No documenta migraciones o tecnologías previstas para versiones posteriores.
 
 ---
 
 # 2. Arquitectura de despliegue
 
-KenFinance v1.0 es una aplicación frontend estática.
+KenFinance v2.0 es una aplicación Angular/Ionic.
 
-No existe un servidor Node.js propio en producción.
+A diferencia de v1.0, el frontend requiere un proceso de compilación antes de ser publicado.
 
 ```text
 Repositorio GitHub
        │
        ▼
+   npm run build
+       │
+       ▼
+      www/
+       │
+       ▼
      Vercel
        │
        ▼
-HTML + CSS + JavaScript
+KenFinance Web / PWA
        │
        ▼
 Firebase
@@ -82,727 +105,664 @@ Firebase
 └── Cloud Firestore
 ```
 
-Vercel publica los archivos del frontend.
+Node.js se utiliza como entorno de desarrollo y build.
 
-Firebase proporciona autenticación y persistencia de datos.
+KenFinance no dispone de un servidor Node.js propio como backend de producción.
 
 ---
 
-# 3. Archivos de configuración involucrados
+# 3. Flujo de release
 
-Los principales archivos relacionados con despliegue son:
-
-```text
-vercel.json
-firebase.json
-.firebaserc
-firestore.rules
-firestore.indexes.json
-manifest.json
-service-worker.js
-js/firebase/runtime-config.js
-```
-
-También existe:
+El flujo utilizado para cerrar v2.0 fue:
 
 ```text
-_redirects
+v2-development
+      │
+      ▼
+Pull Request hacia main
+      │
+      ▼
+Preview Deployment
+      │
+      ▼
+Validación QA
+      │
+      ▼
+Resolución de conflictos
+      │
+      ▼
+Merge a main
+      │
+      ▼
+Production Deployment
 ```
 
-correspondiente a compatibilidad con despliegues alternativos como Netlify.
+Este flujo se recomienda para futuras versiones.
+
+## Principio
+
+`main` representa la versión estable.
+
+Las nuevas versiones o cambios importantes deben desarrollarse preferentemente en ramas separadas y revisarse antes de integrarse a producción.
 
 ---
 
 # 4. Requisitos previos
 
-Para trabajar localmente se recomienda disponer de:
+Para trabajar con KenFinance v2.0 se requiere:
 
 ```text
 Git
 Node.js
 npm
+Ionic CLI
 navegador moderno
 ```
 
-Para administrar el despliegue también se requiere acceso autorizado a:
+Para desplegar también se requiere acceso autorizado a:
 
 ```text
-Repositorio GitHub de KenFinance
+Repositorio GitHub
 Proyecto Vercel
 Proyecto Firebase
 ```
 
+Las versiones principales utilizadas por v2.0 incluyen:
+
+```text
+Angular 20.3.29
+Angular CLI 20.3.34
+Ionic 9
+TypeScript 5.9.3
+```
+
 ---
 
-# 5. Verificación local antes del despliegue
+# 5. Preparación local
 
-Antes de publicar cambios:
+Antes de publicar cambios debe comprobarse el estado del repositorio.
 
-## Instalar herramientas del proyecto
+## Instalar dependencias
 
 ```bash
 npm install
 ```
 
-## Ejecutar KenFinance localmente
+## Ejecutar desarrollo
+
+Script oficial:
 
 ```bash
-npm run dev
+npm start
 ```
 
-El proyecto utiliza un servidor estático mediante:
+que ejecuta:
 
 ```text
-npx -y serve .
+ng serve
 ```
 
-## Ejecutar lint
+También puede utilizarse:
 
 ```bash
-npm run lint
+ionic serve
 ```
 
-Antes de desplegar conviene comprobar manualmente:
+si Ionic CLI está instalado.
 
-```text
-Login
-Registro
-Google Login
-Recuperación de contraseña
-Perfil
-Cuentas
-Ingresos
-Gastos
-Edición
-Eliminación
-Filtros
-Gráficos
-Excel
-PDF
-Tema claro/oscuro
-PWA
+## Estado de Git
+
+Antes de preparar un release:
+
+```bash
+git status
 ```
+
+Debe revisarse que no existan cambios accidentales o archivos sin seguimiento que no deban formar parte del release.
 
 ---
 
-# 6. Despliegue principal en Vercel
+# 6. Build de producción
 
-Vercel es el hosting principal utilizado por KenFinance v1.0.
+El build oficial se ejecuta mediante:
 
-## Flujo recomendado
+```bash
+npm run build
+```
+
+Este script ejecuta:
 
 ```text
-Cambios locales
-      │
-      ▼
+ng build
+```
+
+Durante el cierre de v2.0, la salida generada por el proyecto fue:
+
+```text
+www/
+```
+
+Ejemplo de resultado esperado:
+
+```text
+Application bundle generation complete.
+Output location: .../www
+```
+
+## Condición de aprobación
+
+El build debe:
+
+```text
+✅ finalizar correctamente
+❌ no contener errores bloqueantes
+```
+
+Pueden existir warnings conocidos documentados en esta guía.
+
+---
+
+# 7. Despliegue principal en Vercel
+
+Vercel es el hosting principal de KenFinance v2.0.
+
+El repositorio se encuentra conectado a Vercel, por lo que los cambios enviados a GitHub pueden generar deployments automáticamente.
+
+Flujo general:
+
+```text
 Commit
+  │
+  ▼
+Push
+  │
+  ▼
+GitHub
+  │
+  ▼
+Vercel detecta el cambio
+  │
+  ▼
+Build
+  │
+  ▼
+Deployment
+```
+
+---
+
+# 8. Producción y rama `main`
+
+La rama utilizada para producción es:
+
+```text
+main
+```
+
+Cuando un Pull Request es fusionado hacia `main`, Vercel genera el deployment de producción correspondiente.
+
+Durante el cierre de v2.0 se utilizó este proceso:
+
+```text
+v2-development
       │
       ▼
-Push a GitHub
+Pull Request
       │
       ▼
-Vercel detecta cambios
+Merge
       │
       ▼
-Nuevo deployment
+main
+      │
+      ▼
+Vercel Production
 ```
 
-## Importación inicial
+## Validación
 
-Al importar el repositorio en Vercel:
+Después del merge debe comprobarse en Vercel que el deployment:
 
 ```text
-Framework Preset: Other
-Root Directory: ./
+Environment: Production
+Branch: main
+Status: Ready
 ```
 
-KenFinance v1.0 no requiere un proceso de compilación frontend.
-
-La aplicación se sirve directamente desde los archivos existentes en el repositorio.
-
-No existe una carpeta `dist/` generada para esta versión.
+y que corresponde al commit esperado.
 
 ---
 
-# 7. Configuración actual de Vercel
+# 9. Preview Deployments
 
-El archivo:
+Vercel genera Preview Deployments para ramas o Pull Requests.
 
-```text
-vercel.json
-```
+Estos entornos permiten:
 
-contiene la configuración utilizada por el despliegue.
+- probar cambios antes de producción;
+- ejecutar QA;
+- revisar responsive;
+- validar rutas;
+- comprobar Firebase;
+- detectar errores de consola.
 
-## Rewrite SPA
+## Importante
 
-Todas las rutas se redirigen a:
+Preview y Production no deben considerarse entornos idénticos en todos los aspectos.
 
-```text
-/index.html
-```
+Durante QA de v2.0 se observaron errores relacionados con CORS/manifest en un entorno Preview que no afectaban el funcionamiento general de la aplicación.
 
-Conceptualmente:
-
-```text
-/(.*)
-   ↓
-/index.html
-```
-
-Esto permite mantener el comportamiento de aplicación de una sola página.
+Por ello, los problemas exclusivos de Preview deben confirmarse nuevamente en Production antes de clasificarlos como fallos definitivos del producto.
 
 ---
 
-## Caché
+# 10. Routing SPA
 
-`index.html` y `service-worker.js` utilizan:
+KenFinance utiliza Angular Router.
+
+Las rutas internas deben continuar funcionando cuando el usuario:
 
 ```text
-Cache-Control:
-no-cache, no-store, must-revalidate
+abre una URL directa
+actualiza con F5
+recarga una ruta interna
 ```
 
-Esto evita conservar versiones antiguas de estos dos archivos críticos.
+Durante la validación de producción de v2.0 se comprobó el comportamiento de rutas internas.
+
+## Configuración
+
+v2.0 no mantiene el `vercel.json` heredado de v1.0.
+
+La versión de producción fue validada sin reutilizar automáticamente aquella configuración antigua.
+
+Si en una versión futura aparece un problema de 404 al refrescar rutas, debe revisarse primero la configuración efectiva del proyecto en Vercel antes de volver a introducir rewrites personalizados.
 
 ---
 
-## Encabezados
+# 11. Firebase utilizado por producción
 
-Vercel configura encabezados de seguridad como:
+KenFinance utiliza Firebase para:
 
 ```text
-X-Content-Type-Options
-X-Frame-Options
-Referrer-Policy
-Permissions-Policy
-Content-Security-Policy
+Authentication
+Cloud Firestore
 ```
 
-Los detalles se encuentran centralizados en `vercel.json`.
+La configuración utilizada por el frontend debe corresponder al mismo proyecto Firebase donde existen:
+
+- usuarios;
+- reglas de Firestore;
+- datos;
+- índices necesarios.
+
+## Importante
+
+El identificador exacto del proyecto Firebase debe verificarse directamente en la configuración vigente de v2.0 antes de documentarlo como dato permanente.
+
+No debe asumirse automáticamente que cualquier identificador histórico de v1.0 continúa siendo el mismo sin comprobar el código actual.
 
 ---
 
-# 8. Firebase utilizado por producción
+# 12. Firebase Authentication
 
-La configuración Firebase utilizada por KenFinance se encuentra en:
-
-```text
-js/firebase/runtime-config.js
-```
-
-El proyecto configurado actualmente utiliza:
+Firebase Authentication gestiona:
 
 ```text
-Project ID:
-konteo-fiance
+sesión de usuario
+inicio de sesión
+cierre de sesión
+persistencia de sesión
 ```
 
-El mismo proyecto aparece como proyecto predeterminado en:
+Después de publicar un dominio nuevo debe comprobarse que esté autorizado en Firebase Authentication cuando el método de autenticación utilizado lo requiera.
+
+## Verificación mínima
 
 ```text
-.firebaserc
+[ ] Login funciona
+[ ] Logout funciona
+[ ] Sesión persiste correctamente
+[ ] Usuario no autenticado no accede a rutas protegidas
 ```
-
-Por tanto:
-
-```text
-runtime-config.js
-        │
-        └── konteo-fiance
-
-.firebaserc
-        │
-        └── konteo-fiance
-```
-
-deben permanecer coherentes.
 
 ---
 
-# 9. Firebase Authentication
+# 13. Cloud Firestore
 
-KenFinance utiliza Firebase Authentication para:
+Cloud Firestore almacena la información persistente de KenFinance.
 
-```text
-Email + contraseña
-Google
-Recuperación de contraseña
-Sesión de usuario
-```
-
-Después de desplegar en un dominio nuevo, debe comprobarse que ese dominio esté autorizado en la configuración de Firebase Authentication.
-
-Si el dominio no está permitido, determinadas operaciones de autenticación pueden fallar.
-
----
-
-# 10. Cloud Firestore
-
-Cloud Firestore almacena los datos de KenFinance.
-
-Entre ellos:
+Entre los datos manejados por v2.0 se encuentran:
 
 ```text
-usuarios
 perfil
-cuentas/assets
-ingresos
-gastos
+cuentas
+movimientos
 plan financiero
+información utilizada por reportes
 ```
 
-La configuración del frontend apunta al proyecto Firebase definido en `runtime-config.js`.
+El acceso debe permanecer asociado al usuario autenticado.
 
 ---
 
-# 11. Firestore Rules e índices
+# 14. Firestore Rules e índices
 
-Los archivos:
+Firestore Security Rules representan la capa principal de autorización de datos.
+
+Las validaciones del frontend no sustituyen estas reglas.
+
+Si el repositorio mantiene archivos como:
 
 ```text
 firestore.rules
 firestore.indexes.json
-```
-
-se encuentran asociados desde:
-
-```text
 firebase.json
 ```
 
-mediante:
+los cambios de reglas o índices deben desplegarse de forma explícita mediante Firebase CLI.
 
-```text
-firestore:
-  rules   → firestore.rules
-  indexes → firestore.indexes.json
-```
-
-Cuando se realizan cambios en reglas o índices, deben desplegarse explícitamente mediante Firebase CLI.
-
-## Desplegar reglas
+Ejemplos:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
 
-## Desplegar índices
-
 ```bash
 firebase deploy --only firestore:indexes
 ```
 
-## Desplegar ambos
+o:
 
 ```bash
 firebase deploy --only firestore
 ```
 
-Las reglas de Firestore forman parte de la seguridad real de la aplicación y deben revisarse antes de considerar un release completamente cerrado.
+## Regla de release
+
+No debe modificarse una regla de producción sin:
+
+1. revisar su alcance;
+2. comprobar acceso autorizado;
+3. comprobar aislamiento entre usuarios;
+4. validar que no abra permisos innecesarios.
 
 ---
 
-# 12. Firebase Hosting como alternativa
+# 15. PWA en producción
 
-Aunque Vercel es el hosting principal de v1.0, el repositorio también mantiene configuración para Firebase Hosting.
-
-El archivo:
+KenFinance v2.0 incorpora PWA mediante:
 
 ```text
-firebase.json
+@angular/service-worker
 ```
 
-utiliza:
+La instalación requiere un entorno compatible y HTTPS.
+
+Vercel proporciona HTTPS en producción.
+
+## Validación
+
+Debe comprobarse:
 
 ```text
-public: "."
-```
-
-Por tanto Firebase Hosting puede servir directamente la raíz del proyecto.
-
----
-
-## Archivos ignorados por Firebase Hosting
-
-La configuración excluye, entre otros:
-
-```text
-firebase.json
-firestore.rules
-firestore.indexes.json
-README.md
-DEPLOYMENT.md
-GUIA_TECNICA_COMPLETA.md
-vercel.json
-_redirects
-node_modules
-archivos ocultos
+[ ] manifest disponible
+[ ] Service Worker registrado
+[ ] aplicación instalable
+[ ] iconos correctos
+[ ] nombre correcto
+[ ] apertura independiente del navegador cuando corresponde
 ```
 
 ---
 
-## Rewrite
+# 16. Service Worker y actualización
 
-Firebase Hosting también redirige todas las rutas hacia:
+Angular gestiona el Service Worker de la PWA.
 
-```text
-/index.html
-```
-
-manteniendo el comportamiento SPA.
-
----
-
-## Despliegue mediante Firebase Hosting
-
-Después de autenticar Firebase CLI:
-
-```bash
-firebase login
-```
-
-puede comprobarse el proyecto actual:
-
-```bash
-firebase use
-```
-
-El proyecto predeterminado debe corresponder a:
+No debe asumirse que v2.0 utiliza el archivo manual:
 
 ```text
-konteo-fiance
-```
-
-Para desplegar únicamente Hosting:
-
-```bash
-firebase deploy --only hosting
-```
-
-Firebase Hosting se mantiene como alternativa y no como hosting principal de KenFinance v1.0.
-
----
-
-# 13. PWA en producción
-
-KenFinance v1.0 incluye soporte PWA mediante:
-
-```text
-manifest.json
 service-worker.js
-icons/
 ```
 
-Para que la instalación funcione correctamente, producción debe utilizar:
+de la arquitectura v1.0.
+
+## Riesgo de caché
+
+Una PWA puede conservar recursos de una versión anterior.
+
+Si después de un deployment el usuario continúa viendo una versión vieja, deben revisarse:
 
 ```text
-HTTPS
+DevTools
+→ Application
+→ Service Workers
+
+DevTools
+→ Application
+→ Cache Storage
 ```
 
-Vercel proporciona HTTPS para los deployments publicados.
+y comprobar si el deployment nuevo ya se encuentra activo.
 
 ---
 
-# 14. Service Worker y caché
+# 17. Manifest e instalación
 
-El Service Worker actual utiliza:
+La identidad de la PWA debe definirse mediante la configuración vigente del proyecto Angular.
 
-```text
-CACHE_NAME = KenFinance-v1.0.0
-```
+La instalación puede ofrecerse desde navegadores compatibles.
 
-y precarga recursos principales de la aplicación.
+## Desktop
 
-Entre ellos:
+En Chrome u otros navegadores compatibles puede aparecer:
 
 ```text
-/
-index.html
-css/styles.css
-manifest.json
-js/app.js
-js/state.js
-módulos Firebase
-servicios principales
-módulos UI
-iconos principales
+Instalar aplicación
 ```
+
+## Android
+
+Puede aparecer como:
+
+```text
+Instalar aplicación
+Agregar a pantalla principal
+```
+
+El texto exacto depende del navegador.
 
 ---
 
-## Estrategia de navegación
+# 18. Seguridad de despliegue
 
-Para solicitudes de navegación:
+No deben publicarse en el repositorio:
 
 ```text
-Network first
-        │
-        └── si falla
-              ↓
-          /index.html
+contraseñas
+tokens privados
+claves privadas
+credenciales administrativas
+archivos de cuenta de servicio
 ```
 
-Esto permite que la aplicación pueda seguir abriendo su interfaz básica cuando la red no responde y los recursos necesarios ya están disponibles.
+La configuración pública del SDK web de Firebase no debe confundirse con una credencial administrativa.
+
+## Producción
+
+Antes de publicar debe comprobarse:
+
+- autenticación;
+- reglas de Firestore;
+- rutas protegidas;
+- ausencia de secretos;
+- errores de consola;
+- comportamiento de Firebase;
+- aislamiento entre usuarios.
 
 ---
 
-## Recursos estáticos
+# 19. Actualización de producción
 
-Para otros recursos GET:
-
-```text
-Cache first
-    │
-    └── si no existe
-          ↓
-       Network
-```
-
----
-
-## Firebase
-
-Las solicitudes detectadas como relacionadas con Firebase no se interceptan mediante esta estrategia de caché.
-
-Esto evita tratar las comunicaciones con Firebase como archivos estáticos.
-
----
-
-## Actualización de caché
-
-Cuando cambia el nombre:
-
-```text
-KenFinance-v1.0.0
-```
-
-el Service Worker puede eliminar caches anteriores durante `activate`.
-
-Si se realizan cambios importantes a los recursos precargados, debe considerarse actualizar la versión de `CACHE_NAME`.
-
----
-
-# 15. Manifest
-
-El archivo:
-
-```text
-manifest.json
-```
-
-define la identidad PWA.
-
-Actualmente utiliza:
-
-```text
-name:
-KenFinance — Mis Finanzas
-
-short_name:
-KenFinance
-
-display:
-standalone
-
-orientation:
-portrait-primary
-```
-
-También incluye accesos rápidos para:
-
-```text
-Nuevo Ingreso
-Nuevo Gasto
-```
-
-y los iconos desde:
-
-```text
-72×72
-```
-
-hasta:
-
-```text
-512×512
-```
-
----
-
-# 16. Encabezados de seguridad
-
-Vercel y Firebase Hosting contienen configuraciones equivalentes para varios encabezados.
-
-Entre ellos:
-
-## MIME sniffing
-
-```text
-X-Content-Type-Options: nosniff
-```
-
-## Embedding en frames
-
-```text
-X-Frame-Options: DENY
-```
-
-## Referrer Policy
-
-```text
-Referrer-Policy:
-strict-origin-when-cross-origin
-```
-
-## Permissions Policy
-
-Actualmente se bloquea el acceso web a:
-
-```text
-camera
-microphone
-geolocation
-usb
-```
-
-## Content Security Policy
-
-La CSP limita:
-
-```text
-scripts
-estilos
-fuentes
-imágenes
-conexiones
-workers
-frames
-objetos
-formularios
-```
-
-y permite los dominios necesarios para Firebase y las bibliotecas utilizadas por KenFinance v1.0.
-
----
-
-# 17. Actualización de producción
-
-Para publicar una nueva modificación del frontend:
+Flujo recomendado para una versión:
 
 ```bash
-git add .
-git commit -m "tipo: descripción"
-git push
+git checkout <rama-desarrollo>
+git status
+npm run build
 ```
 
-Si Vercel continúa conectado al repositorio y rama de producción, se generará un nuevo deployment.
-
-Antes del push se recomienda:
-
-```bash
-npm run lint
-```
-
-y una prueba funcional local.
-
----
-
-## Cambios Firebase
-
-Los cambios del frontend publicados en Vercel **no despliegan automáticamente**:
+Después:
 
 ```text
-firestore.rules
-firestore.indexes.json
+commit
+push
+Pull Request
+QA Preview
+merge a main
 ```
 
-Cuando se modifican estos archivos debe utilizarse Firebase CLI.
+Vercel desplegará el nuevo estado de `main`.
 
-Ejemplo:
+## Cambios pequeños de documentación
 
-```bash
-firebase deploy --only firestore
-```
+Los cambios puramente documentales pueden gestionarse de forma separada, pero deben mantenerse sincronizados entre Git local y remoto.
 
 ---
 
-# 18. Rollback
+# 20. Rollback
 
-Vercel conserva deployments anteriores del proyecto.
+Si una publicación introduce un problema importante existen dos mecanismos principales.
 
-Si una publicación introduce un error, puede utilizarse un deployment anterior estable desde el panel de Vercel.
+## Opción A — Vercel
 
-También puede revertirse el cambio en Git:
+Vercel conserva deployments anteriores.
+
+Puede promoverse o restaurarse un deployment estable previo desde el panel correspondiente.
+
+## Opción B — Git
+
+Puede revertirse el commit:
 
 ```bash
 git revert <commit>
-git push
+git push origin main
 ```
 
-La estrategia elegida dependerá del tipo de incidencia.
+## Regla
+
+Evitar:
+
+```bash
+git push --force
+```
+
+sobre `main` salvo un caso excepcional y completamente controlado.
+
+Para operación normal de KenFinance se recomienda `git revert`.
 
 ---
 
-# 19. Checklist posterior al despliegue
+# 21. Checklist posterior al despliegue
 
-Después de publicar una versión debe comprobarse:
+Después de cada release de producción comprobar:
 
 ```text
-[ ] La página carga mediante HTTPS
-[ ] No aparecen errores críticos en consola
-[ ] Login por email funciona
-[ ] Login Google funciona
+[ ] Production Deployment está en Ready
+[ ] Branch = main
+[ ] La aplicación abre mediante HTTPS
+[ ] Login funciona
 [ ] Logout funciona
-[ ] Perfil carga correctamente
+[ ] La sesión se mantiene correctamente
+[ ] Rutas protegidas funcionan
+[ ] F5 en rutas internas no rompe la aplicación
+[ ] Home carga
+[ ] Historial carga
+[ ] Portafolio carga
+[ ] Perfil carga
+[ ] Plan carga
+[ ] Reportes cargan
+[ ] Crear datos financieros funciona
+[ ] Modificar datos financieros funciona
+[ ] Eliminar datos financieros funciona
+[ ] Saldos permanecen consistentes
 [ ] Firestore puede leer datos autorizados
-[ ] Firestore puede guardar datos autorizados
-[ ] Crear cuenta funciona
-[ ] Registrar ingreso funciona
-[ ] Registrar gasto funciona
-[ ] Editar movimiento funciona
-[ ] Eliminar movimiento funciona
-[ ] Saldo de cuentas se recalcula
-[ ] Gráficos cargan
-[ ] Excel se genera
-[ ] PDF se genera
-[ ] Tema claro/oscuro funciona
-[ ] manifest.json carga
-[ ] service-worker.js se registra
-[ ] PWA puede instalarse en navegador compatible
-[ ] No se está sirviendo una versión antigua desde caché
+[ ] Firestore puede escribir datos autorizados
+[ ] No aparecen errores críticos en consola
+[ ] Diseño móvil funciona
+[ ] Diseño desktop funciona
+[ ] Manifest carga
+[ ] Service Worker funciona
+[ ] PWA puede instalarse
 ```
 
 ---
 
-# 20. Problemas comunes
+# 22. Problemas comunes
 
-## La aplicación muestra una versión antigua
-
-Posible causa:
-
-```text
-Service Worker / caché
-```
-
-Acciones recomendadas:
-
-1. recargar la aplicación;
-2. comprobar el Service Worker;
-3. comprobar la versión de `CACHE_NAME`;
-4. revisar que `index.html` y `service-worker.js` no estén siendo cacheados por el hosting.
-
----
-
-## Firebase Authentication falla después del deployment
+## Vercel muestra una versión anterior
 
 Comprobar:
 
 ```text
-dominio autorizado
-authDomain
-configuración del proyecto Firebase
+Deployment activo
+Commit desplegado
+Branch
+caché
+Service Worker
 ```
+
+Después puede probarse:
+
+```text
+Ctrl + F5
+```
+
+o una ventana de incógnito.
+
+---
+
+## Push rechazado con `non-fast-forward`
+
+Esto significa que la rama remota contiene cambios que la rama local todavía no integra.
+
+No debe resolverse automáticamente con `--force`.
+
+Primero:
+
+```bash
+git status
+git pull
+```
+
+y revisar el historial antes de continuar.
+
+---
+
+## No se puede cambiar de rama
+
+Si Git muestra:
+
+```text
+local changes would be overwritten by checkout
+```
+
+existen cambios locales sin guardar.
+
+Opciones seguras:
+
+```text
+commit
+```
+
+o:
+
+```bash
+git stash
+```
+
+antes de cambiar de rama.
 
 ---
 
@@ -811,118 +771,180 @@ configuración del proyecto Firebase
 Comprobar:
 
 ```text
-firestore.rules
 usuario autenticado
 ruta consultada
-reglas desplegadas actualmente
+Firestore Rules
+reglas realmente desplegadas
+uid utilizado
 ```
 
-Modificar las validaciones JavaScript del frontend no sustituye las reglas de Firestore.
+No debe "solucionarse" abriendo permisos generales.
 
 ---
 
-## La PWA no se actualiza
+## Login falla únicamente en producción
 
 Comprobar:
 
 ```text
-CACHE_NAME
-service-worker.js
-Cache-Control
-DevTools → Application → Service Workers
+dominio autorizado
+configuración Firebase
+estado del deployment
+errores de consola
 ```
 
 ---
 
-## Una ruta carga 404
+## PWA no aparece como instalable
 
-Vercel y Firebase Hosting están configurados para enviar rutas de aplicación a:
+Comprobar:
 
 ```text
-/index.html
+HTTPS
+manifest
+Service Worker
+DevTools → Application
+errores de consola
 ```
 
-Si se modifica la configuración de hosting, debe conservarse el rewrite necesario para el comportamiento SPA.
+También debe comprobarse que el problema no sea exclusivo de un Preview Deployment.
 
 ---
 
-# 21. Netlify y `_redirects`
+## Una ruta falla al recargar
 
-El repositorio todavía contiene:
+Comprobar:
 
 ```text
-_redirects
+Angular Router
+configuración Vercel
+ruta generada
+deployment actual
 ```
 
-Este archivo corresponde a compatibilidad con Netlify.
-
-Netlify **no es el hosting principal de KenFinance v1.0**.
-
-Por tanto, la presencia de `_redirects` no significa que producción utilice Netlify.
-
-Puede mantenerse mientras se quiera conservar esa opción alternativa.
+No agregar un rewrite personalizado sin comprobar primero la causa.
 
 ---
 
-# 22. Estado del despliegue v1.0
+# 23. Warnings conocidos
 
-La arquitectura de producción documentada para KenFinance v1.0 es:
+El build de v2.0 puede finalizar correctamente mostrando warnings.
+
+## SCSS budgets
+
+Se observaron archivos SCSS que superan ligeramente el budget configurado.
+
+Ejemplos durante QA:
+
+```text
+history.component.scss
+home.page.scss
+login.component.scss
+portfolio.component.scss
+```
+
+Impacto actual:
+
+```text
+No bloqueante
+```
+
+## CommonJS
+
+También pueden aparecer warnings relacionados con dependencias utilizadas indirectamente por librerías como jsPDF/canvg.
+
+El mensaje general indica posibles:
+
+```text
+optimization bailouts
+```
+
+No representa por sí mismo un error funcional ni una vulnerabilidad confirmada.
+
+---
+
+# 24. Estado del despliegue v2.0
+
+La arquitectura de producción documentada es:
 
 ```text
 GitHub
-   │
-   ▼
+  │
+  ▼
+main
+  │
+  ▼
 Vercel
-   │
-   ▼
-KenFinance
-HTML + CSS + JavaScript
-   │
-   ├── manifest.json
-   ├── service-worker.js
-   │
-   ▼
+  │
+  ▼
+Angular / Ionic
+  │
+  ├── PWA
+  │
+  ▼
 Firebase
 ├── Authentication
 └── Cloud Firestore
 ```
 
-## Hosting principal
+## Estado
 
 ```text
-Vercel
+Versión: 2.0.0
+Fase: 2
+Hosting: Vercel
+Rama producción: main
+QA: GO con observación
+Estado: ESTABLE
 ```
 
-## Backend
+## Observación QA conocida
+
+Existe una observación P2 de UI/UX:
 
 ```text
-Firebase
+espacio vertical excesivo
+después de finalizar el contenido
+en determinadas vistas
 ```
 
-## Proyecto Firebase configurado
-
-```text
-konteo-fiance
-```
-
-## Hosting alternativo configurado
-
-```text
-Firebase Hosting
-```
-
-## Compatibilidad adicional presente
-
-```text
-Netlify (_redirects)
-```
+No bloquea producción.
 
 ---
 
-# 📌 Alcance de esta documentación
+# 25. Alcance de esta documentación
 
-Esta guía corresponde exclusivamente a:
+Esta guía corresponde a:
 
-**KenFinance v1.0 — Fase 1**
+**KenFinance v2.0 — Fase 2**
 
-Documenta los archivos de despliegue existentes en esta versión y no incluye todavía cambios de arquitectura o despliegue correspondientes a versiones posteriores.
+Sustituye el documento de deployment de v1.0 como referencia principal.
+
+No conserva como hechos de v2.0 configuraciones históricas que no hayan sido verificadas, entre ellas:
+
+- `vercel.json` de v1.0;
+- Service Worker manual de v1.0;
+- estructura Vanilla JS;
+- configuración alternativa de hosting no confirmada para v2.0;
+- identificadores Firebase históricos sin comprobar.
+
+Para futuras versiones debe actualizarse este archivo cuando cambie:
+
+- plataforma de hosting;
+- rama de producción;
+- proceso de build;
+- configuración PWA;
+- Firebase;
+- reglas;
+- estrategia de release;
+- arquitectura de despliegue.
+
+---
+
+<div align="center">
+
+## KenFinance v2.0
+
+**Producción estable mediante GitHub + Vercel + Firebase.**
+
+</div>
